@@ -7,9 +7,10 @@
     "dev": "pnpm --filter @vizflow/core dev",
     "build": "pnpm --filter @vizflow/core build && pnpm --filter @vizflow/cli build",
     "test": "pnpm --filter @vizflow/core test && pnpm --filter @vizflow/cli test",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "format": "prettier --write ."
   },
+  "type": "module",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
@@ -20,6 +21,7 @@
     "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.2",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.1"
   }
 }
