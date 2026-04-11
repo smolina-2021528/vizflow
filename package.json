@@ -1,0 +1,16 @@
+{
+  "name": "vizflow-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "description": "VizFlow.js monorepo — charts, tables and CLI wizard",
+  "scripts": {
+    "dev": "pnpm --filter @vizflow/core dev",
+    "build": "pnpm --filter @vizflow/core build && pnpm --filter @vizflow/cli build",
+    "test": "pnpm --filter @vizflow/core test && pnpm --filter @vizflow/cli test",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
