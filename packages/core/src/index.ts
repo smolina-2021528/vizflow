@@ -1,5 +1,4 @@
 // ─── Public API entry point ───────────────────────────────────────
-// All exports from VizFlow core go through this file
 
 // Types
 export type {
@@ -18,3 +17,6 @@ export type {
 // Parsers
 export { parseJson, JsonParseError } from './parsers/index.js'
 export { parseCsv, CsvParseError } from './parsers/index.js'
+
+// Charts
+export { barChart } from './charts/index.js'
