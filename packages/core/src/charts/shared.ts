@@ -2,10 +2,7 @@ import { ChartConfig, DataRow } from '../types/index.js'
 
 // ─── Shared utilities for all chart generators ────────────────────
 
-/**
- * Resolves the DataSource from a ChartConfig into a DataRow array.
- * Only supports inline data — file resolution is handled by the CLI.
- */
+/** Resolves the DataSource from a ChartConfig into a DataRow array */
 export function resolveData(config: ChartConfig): DataRow[] {
   const { data } = config
 
@@ -33,6 +30,31 @@ export function extractValues(rows: DataRow[], yKey: string): number[] {
       )
     }
     return value
+  })
+}
+
+/** Extracts an array of {x, y} points for scatter charts */
+export function extractPoints(
+  rows: DataRow[],
+  xKey: string,
+  yKey: string
+): { x: number; y: number }[] {
+  return rows.map((row, index) => {
+    const x = row[xKey]
+    const y = row[yKey]
+
+    if (typeof x !== 'number') {
+      throw new Error(
+        `[VizFlow] Scatter chart: x value at row ${index} for key "${xKey}" is not a number`
+      )
+    }
+    if (typeof y !== 'number') {
+      throw new Error(
+        `[VizFlow] Scatter chart: y value at row ${index} for key "${yKey}" is not a number`
+      )
+    }
+
+    return { x, y }
   })
 }
 
