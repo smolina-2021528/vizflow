@@ -1,4 +1,4 @@
-import { DataRow } from '../types/index.ts'
+import { DataRow } from '../types/index.js'
 
 // ─── Errors ───────────────────────────────────────────────────────
 
