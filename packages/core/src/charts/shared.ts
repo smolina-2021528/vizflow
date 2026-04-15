@@ -2,8 +2,8 @@ import { ChartConfig, DataRow } from '../types/index.js'
 
 // ─── Shared utilities for all chart generators ────────────────────
 
-/** Resolves the DataSource from a ChartConfig into a DataRow array */
-export function resolveData(config: ChartConfig): DataRow[] {
+/** Resolves the DataSource from any config that contains a DataSource into a DataRow array */
+export function resolveData(config: { data: ChartConfig['data'] }): DataRow[] {
   const { data } = config
 
   if (data.kind === 'inline') {
