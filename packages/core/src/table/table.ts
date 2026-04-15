@@ -2,12 +2,16 @@ import { TableConfig, VizFlowOutput } from '../types/index.js'
 import { resolveData } from '../charts/shared.js'
 
 // ─── HTML builder ─────────────────────────────────────────────────
+
 function buildTableHtml(id: string, config: TableConfig): string {
   const rows = resolveData(config)
   const columns = config.columns
 
   const headers = columns
-    .map(col => `<th data-key="${col.key}">${col.label}</th>`)
+    .map(
+      col =>
+        `<th data-key="${col.key}" class="vf-sortable">${col.label}<span class="vf-sort-icon">↕</span></th>`
+    )
     .join('\n      ')
 
   const bodyRows = rows
@@ -27,15 +31,53 @@ function buildTableHtml(id: string, config: TableConfig): string {
       ${headers}
       </tr>
     </thead>
-    <tbody>
+    <tbody id="vf-tbody-${id}">
       ${bodyRows}
     </tbody>
   </table>
 </div>
+<script>
+(function () {
+  const wrapper = document.getElementById('vf-table-${id}')
+  const tbody = document.getElementById('vf-tbody-${id}')
+  let lastKey = null
+  let ascending = true
+
+  wrapper.querySelectorAll('th.vf-sortable').forEach(function (th) {
+    th.style.cursor = 'pointer'
+    th.addEventListener('click', function () {
+      const key = th.getAttribute('data-key')
+      ascending = lastKey === key ? !ascending : true
+      lastKey = key
+
+      const rows = Array.from(tbody.querySelectorAll('tr'))
+      const colIndex = Array.from(th.parentElement.children).indexOf(th)
+
+      rows.sort(function (a, b) {
+        const aVal = a.children[colIndex].textContent.trim()
+        const bVal = b.children[colIndex].textContent.trim()
+        const aNum = parseFloat(aVal)
+        const bNum = parseFloat(bVal)
+        const isNum = !isNaN(aNum) && !isNaN(bNum)
+        const cmp = isNum ? aNum - bNum : aVal.localeCompare(bVal)
+        return ascending ? cmp : -cmp
+      })
+
+      rows.forEach(function (row) { tbody.appendChild(row) })
+
+      wrapper.querySelectorAll('th .vf-sort-icon').forEach(function (icon) {
+        icon.textContent = '↕'
+      })
+      th.querySelector('.vf-sort-icon').textContent = ascending ? '↑' : '↓'
+    })
+  })
+})()
+</script>
   `.trim()
 }
 
 // ─── CSS builder ──────────────────────────────────────────────────
+
 function buildTableCss(id: string): string {
   return `
 #vf-table-${id}.vf-table-wrapper {
@@ -61,6 +103,13 @@ function buildTableCss(id: string): string {
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
+  user-select: none;
+}
+
+#vf-table-${id} .vf-table thead th .vf-sort-icon {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  opacity: 0.8;
 }
 
 #vf-table-${id} .vf-table tbody tr:nth-child(even) {
@@ -88,7 +137,7 @@ function generateId(): string {
 // ─── Main generator ───────────────────────────────────────────────
 
 /**
- * Generates an HTML table from a TableConfig.
+ * Generates an HTML table with client-side sorting from a TableConfig.
  *
  * @param config - Table configuration object
  * @returns VizFlowOutput ready to insert into the DOM
