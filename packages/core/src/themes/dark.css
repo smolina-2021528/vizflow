@@ -1,0 +1,26 @@
+/* VizFlow.js — Dark theme
+   Import this file once to apply the dark theme to all VizFlow components */
+
+:root {
+  --vf-primary: #818cf8;
+  --vf-on-primary: #1e1b4b;
+
+  --vf-background: #1f2937;
+  --vf-surface: #111827;
+
+  --vf-text: #f9fafb;
+  --vf-text-muted: #9ca3af;
+
+  --vf-border: #374151;
+  --vf-row-alt: #273244;
+  --vf-row-hover: #312e81;
+
+  --vf-radius: 8px;
+  --vf-font: 'Inter', system-ui, sans-serif;
+
+  --vf-chart-1: #818cf8;
+  --vf-chart-2: #a78bfa;
+  --vf-chart-3: #f472b6;
+  --vf-chart-4: #fbbf24;
+  --vf-chart-5: #34d399;
+}
