@@ -25,3 +25,7 @@ export type {
   PieChartOptions,
   ScatterChartOptions,
 } from './charts/index.js'
+
+// Tables
+export { table } from './table/index.js'
+export type { TableOptions } from './table/index.js'
