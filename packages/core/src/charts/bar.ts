@@ -19,38 +19,36 @@ function buildHtml(
 <div id="vf-${id}">
   <canvas id="vf-canvas-${id}"></canvas>
 </div>
-<script type="module">
-  import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
+<script>
+  (function () {
+    const ctx = document.getElementById('vf-canvas-${id}')
 
-  Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend)
-
-  const ctx = document.getElementById('vf-canvas-${id}')
-
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ${JSON.stringify(labels)},
-      datasets: [{
-        label: '${title}',
-        data: ${JSON.stringify(values)},
-        backgroundColor: 'var(--vf-primary, #6366f1)',
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'top' },
-        tooltip: { enabled: true }
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ${JSON.stringify(labels)},
+        datasets: [{
+          label: '${title}',
+          data: ${JSON.stringify(values)},
+          backgroundColor: 'var(--vf-primary, #6366f1)',
+          borderRadius: 4,
+          borderSkipped: false,
+        }]
       },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top' },
+          tooltip: { enabled: true }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true }
+        }
       }
-    }
-  })
+    })
+  })()
 </script>
   `.trim()
 }

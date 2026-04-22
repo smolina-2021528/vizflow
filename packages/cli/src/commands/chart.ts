@@ -13,24 +13,34 @@ type ChartType = 'bar' | 'line' | 'pie' | 'scatter'
 
 async function collectManualRows(
   xKey: string,
-  yKey: string
+  yKey: string,
+  numericX: boolean = false
 ): Promise<DataRow[]> {
   const rows: DataRow[] = []
   console.log('\nEnter your data rows. Type "done" as label to finish.\n')
 
   while (true) {
-    const label = await input({ message: `  ${xKey}:` })
-    if (label.toLowerCase() === 'done') break
+    const rawX = await input({ message: `  ${xKey}:` })
+    if (rawX.toLowerCase() === 'done') break
 
-    const raw = await input({ message: `  ${yKey}:` })
-    const value = parseFloat(raw)
+    const rawY = await input({ message: `  ${yKey}:` })
+    const valueY = parseFloat(rawY)
 
-    if (isNaN(value)) {
+    if (isNaN(valueY)) {
       console.log('  ⚠ Not a number — skipping row.')
       continue
     }
 
-    rows.push({ [xKey]: label, [yKey]: value })
+    if (numericX) {
+      const valueX = parseFloat(rawX)
+      if (isNaN(valueX)) {
+        console.log('  ⚠ X is not a number — skipping row.')
+        continue
+      }
+      rows.push({ [xKey]: valueX, [yKey]: valueY })
+    } else {
+      rows.push({ [xKey]: rawX, [yKey]: valueY })
+    }
   }
 
   return rows
@@ -50,10 +60,10 @@ function writeHtml(filename: string, rendered: string, theme: string): void {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VizFlow Chart</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   ${themeStyle}
 </head>
 <body style="padding:32px;background:var(--vf-background)">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>
   ${rendered}
 </body>
 </html>`
@@ -108,7 +118,7 @@ export async function run(): Promise<void> {
     default: 'value',
   })
 
-  const rows = await collectManualRows(xKey, yKey)
+  const rows = await collectManualRows(xKey, yKey, type === 'scatter')
 
   if (rows.length === 0) {
     console.log('\n⚠ No data entered — aborting.\n')

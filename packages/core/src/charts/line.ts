@@ -35,41 +35,40 @@ function buildHtml(
 <div id="vf-${id}">
   <canvas id="vf-canvas-${id}"></canvas>
 </div>
-<script type="module">
-  import { Chart, LineController, LineElement, PointElement, CategoryScale, LinearScale, Filler, Tooltip, Legend } from 'chart.js'
+<script>
+  (function () {
 
-  Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Filler, Tooltip, Legend)
+    const ctx = document.getElementById('vf-canvas-${id}')
 
-  const ctx = document.getElementById('vf-canvas-${id}')
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ${JSON.stringify(labels)},
-      datasets: [{
-        label: '${title}',
-        data: ${JSON.stringify(values)},
-        borderColor: 'var(--vf-primary, #6366f1)',
-        backgroundColor: '${fill ? 'rgba(99, 102, 241, 0.15)' : 'transparent'}',
-        fill: ${fill},
-        tension: ${tension},
-        pointRadius: ${showPoints ? 4 : 0},
-        pointHoverRadius: ${showPoints ? 6 : 0},
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'top' },
-        tooltip: { enabled: true }
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ${JSON.stringify(labels)},
+        datasets: [{
+          label: '${title}',
+          data: ${JSON.stringify(values)},
+          borderColor: 'var(--vf-primary, #6366f1)',
+          backgroundColor: '${fill ? 'rgba(99, 102, 241, 0.15)' : 'transparent'}',
+          fill: ${fill},
+          tension: ${tension},
+          pointRadius: ${showPoints ? 4 : 0},
+          pointHoverRadius: ${showPoints ? 6 : 0},
+        }]
       },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top' },
+          tooltip: { enabled: true }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true }
+        }
       }
-    }
-  })
+    })
+  })()
 </script>
   `.trim()
 }
