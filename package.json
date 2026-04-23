@@ -1,6 +1,6 @@
 {
   "name": "vizflow-monorepo",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "description": "VizFlow.js monorepo — charts, tables and CLI wizard",
   "scripts": {

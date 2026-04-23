@@ -1,0 +1,26 @@
+/* VizFlow.js — Light theme
+   Import this file once to apply the light theme to all VizFlow components */
+
+:root {
+  --vf-primary: #6366f1;
+  --vf-on-primary: #ffffff;
+
+  --vf-background: #ffffff;
+  --vf-surface: #f9fafb;
+
+  --vf-text: #111827;
+  --vf-text-muted: #6b7280;
+
+  --vf-border: #e5e7eb;
+  --vf-row-alt: #f5f5f5;
+  --vf-row-hover: #ede9fe;
+
+  --vf-radius: 8px;
+  --vf-font: 'Inter', system-ui, sans-serif;
+
+  --vf-chart-1: #6366f1;
+  --vf-chart-2: #8b5cf6;
+  --vf-chart-3: #ec4899;
+  --vf-chart-4: #f59e0b;
+  --vf-chart-5: #10b981;
+}
