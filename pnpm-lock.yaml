@@ -65,6 +65,16 @@ importers:
         specifier: ^4.5.4
         version: 4.5.4(@types/node@22.19.17)(typescript@6.0.2)(vite@8.0.8(@types/node@22.19.17)(esbuild@0.27.7)(tsx@4.21.0))
 
+  playground:
+    dependencies:
+      '@vizflow/core':
+        specifier: workspace:*
+        version: link:../packages/core
+    devDependencies:
+      vite:
+        specifier: ^8.0.8
+        version: 8.0.8(@types/node@22.19.17)(esbuild@0.27.7)(tsx@4.21.0)
+
 packages:
 
   '@babel/helper-string-parser@7.27.1':
