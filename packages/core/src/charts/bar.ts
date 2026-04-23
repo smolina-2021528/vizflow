@@ -30,7 +30,7 @@ function buildHtml(
         datasets: [{
           label: '${title}',
           data: ${JSON.stringify(values)},
-          backgroundColor: 'var(--vf-primary, #6366f1)',
+          backgroundColor: '#6366f1',
           borderRadius: 4,
           borderSkipped: false,
         }]
