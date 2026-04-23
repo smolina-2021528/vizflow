@@ -10,11 +10,12 @@ import {
   pieChart,
   scatterChart,
   parseCsv,
+  parseJson,
 } from '@vizflow/core'
 import type { ChartConfig, DataRow } from '@vizflow/core'
 
 type ChartType = 'bar' | 'line' | 'pie' | 'scatter'
-type DataSource = 'manual' | 'csv'
+type DataSource = 'manual' | 'csv' | 'json'
 
 // ─── Manual data entry ────────────────────────────────────────────
 
@@ -66,6 +67,27 @@ async function collectCsvRows(): Promise<DataRow[]> {
   try {
     const raw = readFileSync(absolutePath, 'utf-8')
     const rows = parseCsv(raw)
+    console.log(`\n✅ Loaded ${rows.length} rows from ${absolutePath}\n`)
+    return rows
+  } catch (err) {
+    console.error(`\n❌ Could not read file: ${absolutePath}\n`)
+    throw err
+  }
+}
+
+// ─── JSON data entry ──────────────────────────────────────────────
+
+async function collectJsonRows(): Promise<DataRow[]> {
+  const filePath = await input({
+    message: 'Path to JSON file:',
+    default: './data.json',
+  })
+
+  const absolutePath = resolve(process.cwd(), filePath)
+
+  try {
+    const raw = readFileSync(absolutePath, 'utf-8')
+    const rows = parseJson(raw)
     console.log(`\n✅ Loaded ${rows.length} rows from ${absolutePath}\n`)
     return rows
   } catch (err) {
@@ -151,6 +173,7 @@ export async function run(): Promise<void> {
     choices: [
       { name: 'Manual entry', value: 'manual' },
       { name: 'CSV file', value: 'csv' },
+      { name: 'JSON file', value: 'json' },
     ],
   })
 
@@ -158,6 +181,8 @@ export async function run(): Promise<void> {
 
   if (sourceType === 'csv') {
     rows = await collectCsvRows()
+  } else if (sourceType === 'json') {
+    rows = await collectJsonRows()
   } else {
     rows = await collectManualRows(xKey, yKey, type === 'scatter')
   }
