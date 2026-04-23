@@ -1,13 +1,20 @@
 // ─── /chart wizard ───────────────────────────────────────────────
 
 import { select, input } from '@inquirer/prompts'
-import { writeFileSync } from 'fs'
+import { writeFileSync, readFileSync } from 'fs'
 import { resolve } from 'path'
 
-import { barChart, lineChart, pieChart, scatterChart } from '@vizflow/core'
+import {
+  barChart,
+  lineChart,
+  pieChart,
+  scatterChart,
+  parseCsv,
+} from '@vizflow/core'
 import type { ChartConfig, DataRow } from '@vizflow/core'
 
 type ChartType = 'bar' | 'line' | 'pie' | 'scatter'
+type DataSource = 'manual' | 'csv'
 
 // ─── Manual data entry ────────────────────────────────────────────
 
@@ -44,6 +51,27 @@ async function collectManualRows(
   }
 
   return rows
+}
+
+// ─── CSV data entry ───────────────────────────────────────────────
+
+async function collectCsvRows(): Promise<DataRow[]> {
+  const filePath = await input({
+    message: 'Path to CSV file:',
+    default: './data.csv',
+  })
+
+  const absolutePath = resolve(process.cwd(), filePath)
+
+  try {
+    const raw = readFileSync(absolutePath, 'utf-8')
+    const rows = parseCsv(raw)
+    console.log(`\n✅ Loaded ${rows.length} rows from ${absolutePath}\n`)
+    return rows
+  } catch (err) {
+    console.error(`\n❌ Could not read file: ${absolutePath}\n`)
+    throw err
+  }
 }
 
 // ─── HTML file writer ─────────────────────────────────────────────
@@ -118,7 +146,21 @@ export async function run(): Promise<void> {
     default: 'value',
   })
 
-  const rows = await collectManualRows(xKey, yKey, type === 'scatter')
+  const sourceType = await select<DataSource>({
+    message: 'Data source?',
+    choices: [
+      { name: 'Manual entry', value: 'manual' },
+      { name: 'CSV file', value: 'csv' },
+    ],
+  })
+
+  let rows: DataRow[]
+
+  if (sourceType === 'csv') {
+    rows = await collectCsvRows()
+  } else {
+    rows = await collectManualRows(xKey, yKey, type === 'scatter')
+  }
 
   if (rows.length === 0) {
     console.log('\n⚠ No data entered — aborting.\n')
