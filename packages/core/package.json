@@ -2,6 +2,9 @@
   "name": "@vizflow/core",
   "version": "1.0.0",
   "description": "VizFlow.js core — chart and table generators",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

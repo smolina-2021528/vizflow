@@ -2,6 +2,9 @@
   "name": "@vizflow/cli",
   "version": "1.0.0",
   "description": "Conversational CLI wizard for VizFlow.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": {
     "vizflow": "./dist/index.js"
