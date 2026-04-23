@@ -98,12 +98,26 @@ const tableData = {
   },
 }
 
-// ─── Render all components ────────────────────────────────────────
+// ─── Mount helper that executes scripts ───────────────────────────
 
 function mount(id: string, html: string): void {
   const el = document.getElementById(id)
-  if (el) el.innerHTML = html
+  if (!el) return
+
+  el.innerHTML = html
+
+  // Re-execute all script tags injected via innerHTML
+  el.querySelectorAll('script').forEach(oldScript => {
+    const newScript = document.createElement('script')
+    Array.from(oldScript.attributes).forEach(attr =>
+      newScript.setAttribute(attr.name, attr.value)
+    )
+    newScript.textContent = oldScript.textContent
+    oldScript.parentNode?.replaceChild(newScript, oldScript)
+  })
 }
+
+// ─── Render all components ────────────────────────────────────────
 
 mount('bar-container', barChart(salesData).render())
 mount('line-container', lineChart(tempData).render())
