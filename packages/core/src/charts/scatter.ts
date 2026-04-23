@@ -46,7 +46,7 @@ function buildHtml(
         datasets: [{
           label: '${title}',
           data: ${JSON.stringify(points)},
-          backgroundColor: 'var(--vf-primary, #6366f1)',
+          backgroundColor: '#6366f1',
           pointRadius: ${pointRadius},
           pointHoverRadius: ${pointRadius + 2},
         }]

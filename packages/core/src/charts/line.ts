@@ -47,8 +47,8 @@ function buildHtml(
         datasets: [{
           label: '${title}',
           data: ${JSON.stringify(values)},
-          borderColor: 'var(--vf-primary, #6366f1)',
-          backgroundColor: '${fill ? 'rgba(99, 102, 241, 0.15)' : 'transparent'}',
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.15)',
           fill: ${fill},
           tension: ${tension},
           pointRadius: ${showPoints ? 4 : 0},

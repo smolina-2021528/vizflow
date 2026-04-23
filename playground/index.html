@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VizFlow.js Playground</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --vf-primary:    #6366f1;
+      --vf-on-primary: #ffffff;
+      --vf-background: #f9fafb;
+      --vf-surface:    #ffffff;
+      --vf-text:       #111827;
+      --vf-text-muted: #6b7280;
+      --vf-border:     #e5e7eb;
+      --vf-row-alt:    #f5f5f5;
+      --vf-row-hover:  #ede9fe;
+      --vf-radius:     8px;
+      --vf-font:       system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--vf-font);
+      background: var(--vf-background);
+      color: var(--vf-text);
+      padding: 40px 24px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--vf-primary);
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--vf-text-muted);
+      font-size: 1rem;
+    }
+
+    .section {
+      max-width: 900px;
+      margin: 0 auto 48px auto;
+    }
+
+    .section h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--vf-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--vf-border);
+    }
+
+    .card {
+      background: var(--vf-surface);
+      border: 1px solid var(--vf-border);
+      border-radius: var(--vf-radius);
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .card > div {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌊 VizFlow.js</h1>
+    <p>Interactive playground — charts, tables and themes</p>
+  </header>
+
+  <div class="section">
+    <h2>Bar Chart</h2>
+    <div class="card" id="bar-container"></div>
+  </div>
+
+  <div class="section">
+    <h2>Line Chart</h2>
+    <div class="card" id="line-container"></div>
+  </div>
+
+  <div class="section">
+    <h2>Pie Chart</h2>
+    <div class="card" id="pie-container"></div>
+  </div>
+
+  <div class="section">
+    <h2>Scatter Chart</h2>
+    <div class="card" id="scatter-container"></div>
+  </div>
+
+  <div class="section">
+    <h2>Table</h2>
+    <div class="card" id="table-container"></div>
+  </div>
+
+  <script type="module" src="/main.ts"></script>
+</body>
+</html>
