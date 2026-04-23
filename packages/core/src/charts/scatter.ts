@@ -35,43 +35,42 @@ function buildHtml(
 <div id="vf-${id}">
   <canvas id="vf-canvas-${id}"></canvas>
 </div>
-<script type="module">
-  import { Chart, ScatterController, PointElement, LinearScale, Tooltip, Legend } from 'chart.js'
+<script>
+  (function () {
 
-  Chart.register(ScatterController, PointElement, LinearScale, Tooltip, Legend)
+    const ctx = document.getElementById('vf-canvas-${id}')
 
-  const ctx = document.getElementById('vf-canvas-${id}')
-
-  new Chart(ctx, {
-    type: 'scatter',
-    data: {
-      datasets: [{
-        label: '${title}',
-        data: ${JSON.stringify(points)},
-        backgroundColor: 'var(--vf-primary, #6366f1)',
-        pointRadius: ${pointRadius},
-        pointHoverRadius: ${pointRadius + 2},
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'top' },
-        tooltip: { enabled: true }
+    new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: '${title}',
+          data: ${JSON.stringify(points)},
+          backgroundColor: 'var(--vf-primary, #6366f1)',
+          pointRadius: ${pointRadius},
+          pointHoverRadius: ${pointRadius + 2},
+        }]
       },
-      scales: {
-        x: {
-          title: { display: true, text: '${xAxisLabel}' },
-          grid: { display: true }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top' },
+          tooltip: { enabled: true }
         },
-        y: {
-          title: { display: true, text: '${yAxisLabel}' },
-          beginAtZero: false
+        scales: {
+          x: {
+            title: { display: true, text: '${xAxisLabel}' },
+            grid: { display: true }
+          },
+          y: {
+            title: { display: true, text: '${yAxisLabel}' },
+            beginAtZero: false
+          }
         }
       }
-    }
-  })
+    })
+  })()
 </script>
   `.trim()
 }

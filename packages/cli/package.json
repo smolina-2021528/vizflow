@@ -1,0 +1,24 @@
+{
+  "name": "@vizflow/cli",
+  "version": "0.1.0",
+  "description": "Conversational CLI wizard for VizFlow.js",
+  "type": "module",
+  "bin": {
+    "vizflow": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.4.1",
+    "@vizflow/core": "workspace:*",
+    "inquirer": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

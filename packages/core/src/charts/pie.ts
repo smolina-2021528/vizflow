@@ -60,35 +60,34 @@ function buildHtml(
 <div id="vf-${id}">
   <canvas id="vf-canvas-${id}"></canvas>
 </div>
-<script type="module">
-  import { Chart, PieController, ArcElement, Tooltip, Legend } from 'chart.js'
+<script>
+  (function () {
 
-  Chart.register(PieController, ArcElement, Tooltip, Legend)
+    const ctx = document.getElementById('vf-canvas-${id}')
 
-  const ctx = document.getElementById('vf-canvas-${id}')
-
-  new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: ${JSON.stringify(labels)},
-      datasets: [{
-        label: '${title}',
-        data: ${JSON.stringify(values)},
-        backgroundColor: ${JSON.stringify(colors)},
-        borderWidth: 2,
-        borderColor: 'var(--vf-background, #ffffff)',
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '${cutout}',
-      plugins: {
-        legend: { display: true, position: 'right' },
-        tooltip: { enabled: true }
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ${JSON.stringify(labels)},
+        datasets: [{
+          label: '${title}',
+          data: ${JSON.stringify(values)},
+          backgroundColor: ${JSON.stringify(colors)},
+          borderWidth: 2,
+          borderColor: 'var(--vf-background, #ffffff)',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '${cutout}',
+        plugins: {
+          legend: { display: true, position: 'right' },
+          tooltip: { enabled: true }
+        }
       }
-    }
-  })
+    })
+  })()
 </script>
   `.trim()
 }
