@@ -29,3 +29,7 @@ export type {
 // Tables
 export { table } from './table/index.js'
 export type { TableOptions } from './table/index.js'
+
+// Output helpers
+export { toHtmlFile } from './output.js'
+export type { StandaloneOptions } from './output.js'
