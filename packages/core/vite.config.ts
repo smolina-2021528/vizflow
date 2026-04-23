@@ -5,22 +5,20 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [
     dts({
-      // Automatically generate .d.ts files from src/
+      include: ['src'],
+      outDir: 'dist',
       insertTypesEntry: true,
-      include: ['src/**/*'],
     }),
   ],
   build: {
-    // Library mode — output is a consumable package, not an app
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'VizFlow',
-      // Generate both ESM and CJS bundles
       formats: ['es', 'cjs'],
-      fileName: format => `index.${format === 'es' ? 'js' : 'cjs'}`,
+      fileName: format => (format === 'es' ? 'index.js' : 'index.cjs'),
     },
     rollupOptions: {
-      // Mark Chart.js as external — consumers install it themselves
+      // Externalize deps that shouldn't be bundled
       external: ['chart.js'],
       output: {
         globals: {
@@ -28,7 +26,6 @@ export default defineConfig({
         },
       },
     },
-    // Clean dist/ before every build
-    emptyOutDir: true,
+    copyPublicDir: false,
   },
 })
