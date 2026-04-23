@@ -81,3 +81,44 @@ export function toHtmlFile(
 </body>
 </html>`
 }
+
+// ─── Embeddable snippet options ───────────────────────────────────
+
+export interface EmbedOptions {
+  /** Include a comment with usage instructions — defaults to true */
+  includeInstructions?: boolean
+  /** Include Chart.js script tag — defaults to true */
+  includeChartJs?: boolean
+}
+
+// ─── Embed snippet builder ────────────────────────────────────────
+
+/**
+ * Generates a minimal embeddable HTML snippet from a VizFlowOutput.
+ * Paste this directly into any existing HTML page.
+ *
+ * @param output  - VizFlowOutput from any chart or table generator
+ * @param options - Optional embed settings
+ * @returns HTML snippet string ready to copy-paste into any page
+ */
+export function toEmbedSnippet(
+  output: VizFlowOutput,
+  options: EmbedOptions = {}
+): string {
+  const includeInstructions = options.includeInstructions ?? true
+  const includeChartJs = options.includeChartJs ?? true
+
+  const instructions = includeInstructions
+    ? `<!-- VizFlow embed snippet
+     1. Paste this block anywhere inside your <body>
+     2. Make sure your page loads Chart.js if using charts
+     3. Customize colors via CSS variables (--vf-primary, --vf-background, etc.)
+-->\n`
+    : ''
+
+  const chartJsScript = includeChartJs
+    ? `<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>\n`
+    : ''
+
+  return `${instructions}${chartJsScript}${output.render()}`
+}
