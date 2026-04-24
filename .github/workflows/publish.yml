@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install core devDependencies
+        run: pnpm --filter @vizflow/core install --no-frozen-lockfile
+
       - name: Run tests
         run: pnpm --filter @vizflow/core test
 
