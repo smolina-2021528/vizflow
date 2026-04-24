@@ -25,10 +25,12 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --dev
+        env:
+          NODE_ENV: development
 
       - name: Install core devDependencies
-        run: pnpm --filter @vizflow/core install --no-frozen-lockfile
+        run: pnpm --filter @vizflow/core install --dev
 
       - name: Run tests
         run: pnpm --filter @vizflow/core test
