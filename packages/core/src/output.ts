@@ -1,4 +1,7 @@
 import { VizFlowOutput } from './types/index.js'
+import { buildThemeStyle } from './themes/index.js'
+import type { BuiltInThemeName } from './themes/index.js'
+import { escapeHtml } from './utils/escape.js'
 
 // ─── Standalone HTML output options ──────────────────────────────
 
@@ -6,43 +9,9 @@ export interface StandaloneOptions {
   /** Page title shown in the browser tab — defaults to 'VizFlow' */
   title?: string
   /** Visual theme — defaults to 'light' */
-  theme?: 'light' | 'dark'
+  theme?: BuiltInThemeName
   /** Include Chart.js from CDN — defaults to true */
   includeChartJs?: boolean
-}
-
-// ─── Theme tokens ─────────────────────────────────────────────────
-
-function buildThemeStyle(theme: 'light' | 'dark'): string {
-  if (theme === 'dark') {
-    return `:root{
-  --vf-primary:#818cf8;
-  --vf-on-primary:#1e1b4b;
-  --vf-background:#1f2937;
-  --vf-surface:#111827;
-  --vf-text:#f9fafb;
-  --vf-text-muted:#9ca3af;
-  --vf-border:#374151;
-  --vf-row-alt:#273244;
-  --vf-row-hover:#312e81;
-  --vf-radius:8px;
-  --vf-font:system-ui,sans-serif;
-}`
-  }
-
-  return `:root{
-  --vf-primary:#6366f1;
-  --vf-on-primary:#ffffff;
-  --vf-background:#ffffff;
-  --vf-surface:#f9fafb;
-  --vf-text:#111827;
-  --vf-text-muted:#6b7280;
-  --vf-border:#e5e7eb;
-  --vf-row-alt:#f5f5f5;
-  --vf-row-hover:#ede9fe;
-  --vf-radius:8px;
-  --vf-font:system-ui,sans-serif;
-}`
 }
 
 // ─── Main builder ─────────────────────────────────────────────────
@@ -72,7 +41,7 @@ export function toHtmlFile(
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${title}</title>
+  <title>${escapeHtml(title)}</title>
   <style>${buildThemeStyle(theme)}</style>
 </head>
 <body style="padding:32px;background:var(--vf-background);margin:0">
