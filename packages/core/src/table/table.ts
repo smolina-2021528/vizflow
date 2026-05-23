@@ -9,6 +9,17 @@ export interface TableOptions {
   pageSize?: number
 }
 
+
+// build Header Cell
+function buildHeaderCell(col: TableConfig['columns'][number]): string {
+  const isSortable = col.sortable !== false
+  const className = isSortable ? ' class="vf-sortable"' : ''
+  const widthStyle = col.width ? ` style="width:${escapeHtml(col.width)}"` : ''
+  const sortIcon = isSortable ? '<span class="vf-sort-icon">↕</span>' : ''
+
+  return `<th data-key="${escapeHtml(col.key)}"${className}${widthStyle}>${escapeHtml(col.label)}${sortIcon}</th>`
+}
+
 // ─── HTML builder ─────────────────────────────────────────────────
 
 function buildTableHtml(
@@ -18,14 +29,9 @@ function buildTableHtml(
 ): string {
   const rows = resolveData(config)
   const columns = config.columns
-  const pageSize = options.pageSize ?? 10
+  const pageSize = Math.max(0, options.pageSize ?? config.pageSize ?? 10)
 
-  const headers = columns
-  .map(
-    col =>
-      `<th data-key="${escapeHtml(col.key)}" class="vf-sortable">${escapeHtml(col.label)}<span class="vf-sort-icon">↕</span></th>`
-  )
-  .join('\n      ')
+  const headers = columns.map(buildHeaderCell).join('\n      ')
 
   const bodyRows = rows
     .map(row => {
