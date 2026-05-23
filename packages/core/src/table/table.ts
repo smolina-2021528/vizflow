@@ -1,5 +1,6 @@
 import { TableConfig, VizFlowOutput } from '../types/index.js'
 import { resolveData } from '../charts/shared.js'
+import { escapeHtml } from '../utils/escape.js'
 
 // ─── Extended config for table ────────────────────────────────────
 
@@ -20,16 +21,16 @@ function buildTableHtml(
   const pageSize = options.pageSize ?? 10
 
   const headers = columns
-    .map(
-      col =>
-        `<th data-key="${col.key}" class="vf-sortable">${col.label}<span class="vf-sort-icon">↕</span></th>`
-    )
-    .join('\n      ')
+  .map(
+    col =>
+      `<th data-key="${escapeHtml(col.key)}" class="vf-sortable">${escapeHtml(col.label)}<span class="vf-sort-icon">↕</span></th>`
+  )
+  .join('\n      ')
 
   const bodyRows = rows
     .map(row => {
       const cells = columns
-        .map(col => `<td>${row[col.key] ?? ''}</td>`)
+        .map(col => `<td>${escapeHtml(row[col.key] ?? '')}</td>`)
         .join('\n        ')
       return `<tr>\n        ${cells}\n      </tr>`
     })
