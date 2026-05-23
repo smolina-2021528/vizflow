@@ -23,15 +23,33 @@ const baseConfig = {
 describe('barChart', () => {
   it('returns html, css and render', () => {
     const output = barChart(baseConfig)
+
     expect(output.html).toContain('canvas')
     expect(output.css).toContain('vf-')
     expect(output.render()).toContain('<style>')
+  })
+
+  it('escapes dangerous script sequences inside chart titles', () => {
+    const output = barChart({
+      ...baseConfig,
+      title: '</script><script>alert("x")</script>',
+    })
+
+    expect(output.html).not.toContain('</script><script>alert')
+    expect(output.html).toContain('\\u003c/script\\u003e')
+  })
+
+  it('uses CSS variable chart colors at runtime', () => {
+    const output = barChart(baseConfig)
+
+    expect(output.html).toContain('--vf-chart-1')
   })
 })
 
 describe('lineChart', () => {
   it('returns html with canvas', () => {
     const output = lineChart(baseConfig)
+
     expect(output.html).toContain('canvas')
   })
 })
@@ -39,7 +57,14 @@ describe('lineChart', () => {
 describe('pieChart', () => {
   it('returns html with canvas', () => {
     const output = pieChart(baseConfig)
+
     expect(output.html).toContain('canvas')
+  })
+
+  it('can show percentages in tooltip labels', () => {
+    const output = pieChart(baseConfig, { showPercentages: true })
+
+    expect(output.html).toContain('percentage.toFixed(1)')
   })
 })
 
@@ -56,6 +81,7 @@ describe('scatterChart', () => {
         ],
       },
     })
+
     expect(output.html).toContain('canvas')
   })
 })
