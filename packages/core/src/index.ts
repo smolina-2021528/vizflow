@@ -33,3 +33,7 @@ export type { TableOptions } from './table/index.js'
 // Output helpers
 export { toHtmlFile, toEmbedSnippet } from './output.js'
 export type { StandaloneOptions, EmbedOptions } from './output.js'
+
+// Themes
+export { buildThemeStyle } from './themes/index.js'
+export type { BuiltInThemeName } from './themes/index.js'
