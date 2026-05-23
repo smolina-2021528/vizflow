@@ -1,0 +1,26 @@
+/* VizFlow.js — Hot theme
+   Import this file once to apply a warm, high-energy theme to all VizFlow components */
+
+:root {
+  --vf-primary: #ef4444;
+  --vf-on-primary: #ffffff;
+
+  --vf-background: #fff7ed;
+  --vf-surface: #ffedd5;
+
+  --vf-text: #431407;
+  --vf-text-muted: #9a3412;
+
+  --vf-border: #fed7aa;
+  --vf-row-alt: #fff7ed;
+  --vf-row-hover: #fed7aa;
+
+  --vf-radius: 8px;
+  --vf-font: 'Inter', system-ui, sans-serif;
+
+  --vf-chart-1: #ef4444;
+  --vf-chart-2: #f97316;
+  --vf-chart-3: #f59e0b;
+  --vf-chart-4: #eab308;
+  --vf-chart-5: #dc2626;
+}

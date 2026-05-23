@@ -10,7 +10,7 @@ export type DataSource =
 
 // ─── Visual themes ────────────────────────────────────────────────
 
-export type ThemeName = 'light' | 'dark' | 'custom'
+export type ThemeName = 'light' | 'dark' | 'hot' | 'cold' | 'custom'
 
 export interface CustomTheme {
   primary: string
