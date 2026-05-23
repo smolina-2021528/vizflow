@@ -2,6 +2,25 @@
   "name": "@vizflow/cli",
   "version": "1.0.0",
   "description": "Conversational CLI wizard for VizFlow.js",
+  "license": "MIT",
+  "author": "Alejandro Molina",
+  "homepage": "https://github.com/smolina-2021528/vizflow#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smolina-2021528/vizflow.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/smolina-2021528/vizflow/issues"
+  },
+  "keywords": [
+    "vizflow",
+    "cli",
+    "charts",
+    "tables",
+    "visualization",
+    "typescript"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -9,10 +28,14 @@
   "bin": {
     "vizflow": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "tsc --noEmit"
   },
   "dependencies": {
     "@inquirer/prompts": "^8.4.1",

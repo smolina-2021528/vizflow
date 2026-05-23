@@ -2,6 +2,25 @@
   "name": "@vizflow/core",
   "version": "1.0.0",
   "description": "VizFlow.js core — chart and table generators",
+  "license": "MIT",
+  "author": "Alejandro Molina",
+  "homepage": "https://github.com/smolina-2021528/vizflow#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smolina-2021528/vizflow.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/smolina-2021528/vizflow/issues"
+  },
+  "keywords": [
+    "vizflow",
+    "charts",
+    "tables",
+    "visualization",
+    "typescript",
+    "chartjs"
+  ],
   "publishConfig": {
     "access": "public"
   },
