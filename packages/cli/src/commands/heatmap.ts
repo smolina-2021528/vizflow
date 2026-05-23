@@ -1,6 +1,8 @@
 // ─── /heatmap wizard ─────────────────────────────────────────────
 
-import { input } from '@inquirer/prompts'
+import { select, input } from '@inquirer/prompts'
+import { buildThemeStyle } from '@vizflow/core'
+import type { BuiltInThemeName } from '@vizflow/core'
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 
@@ -11,6 +13,13 @@ interface HeatmapData {
   colLabels: string[]
   values: number[][]
 }
+
+const themeChoices: { name: string; value: BuiltInThemeName }[] = [
+  { name: 'Light', value: 'light' },
+  { name: 'Dark', value: 'dark' },
+  { name: 'Hot', value: 'hot' },
+  { name: 'Cold', value: 'cold' },
+]
 
 // ─── HTML builder ─────────────────────────────────────────────────
 
@@ -97,21 +106,20 @@ function buildHeatmapHtml(data: HeatmapData, title: string): string {
 
 // ─── HTML file writer ─────────────────────────────────────────────
 
-function writeHtml(filename: string, content: string, theme: string): void {
-  const themeStyle =
-    theme === 'dark'
-      ? `<style>:root{--vf-background:#1f2937;--vf-text:#f9fafb;--vf-border:#374151;--vf-radius:8px;--vf-font:system-ui,sans-serif}</style>`
-      : `<style>:root{--vf-background:#ffffff;--vf-text:#111827;--vf-border:#e5e7eb;--vf-radius:8px;--vf-font:system-ui,sans-serif}</style>`
-
+function writeHtml(
+  filename: string,
+  content: string,
+  theme: BuiltInThemeName
+): void {
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VizFlow Heatmap</title>
-  ${themeStyle}
+  <style>${buildThemeStyle(theme)}</style>
 </head>
-<body style="padding:32px;background:var(--vf-background)">
+<body style="padding:32px;background:var(--vf-background);margin:0">
   ${content}
 </body>
 </html>`
@@ -179,9 +187,9 @@ export async function run(): Promise<void> {
     return
   }
 
-  const theme = await input({
-    message: 'Theme? (light / dark)',
-    default: 'light',
+  const theme = await select<BuiltInThemeName>({
+  message: 'Theme?',
+  choices: themeChoices,
   })
 
   const filename = await input({
