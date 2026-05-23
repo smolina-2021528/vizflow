@@ -6,7 +6,7 @@ import {
   generateId,
   buildWrapperCss,
 } from './shared.js'
-
+import { toJsonScriptValue } from '../utils/escape.js'
 // ─── HTML builder ─────────────────────────────────────────────────
 
 function buildHtml(
@@ -26,10 +26,10 @@ function buildHtml(
     new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ${JSON.stringify(labels)},
+        labels: ${toJsonScriptValue(labels)},
         datasets: [{
-          label: '${title}',
-          data: ${JSON.stringify(values)},
+          label: ${toJsonScriptValue(title)},
+          data: ${toJsonScriptValue(values)},
           backgroundColor: '#6366f1',
           borderRadius: 4,
           borderSkipped: false,

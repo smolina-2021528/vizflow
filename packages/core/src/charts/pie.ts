@@ -6,7 +6,7 @@ import {
   generateId,
   buildWrapperCss,
 } from './shared.js'
-
+import { toJsonScriptValue } from '../utils/escape.js'
 // ─── Extended config for pie charts ──────────────────────────────
 
 export interface PieChartOptions {
@@ -68,11 +68,11 @@ function buildHtml(
     new Chart(ctx, {
       type: 'pie',
       data: {
-        labels: ${JSON.stringify(labels)},
+        labels: ${toJsonScriptValue(labels)},
         datasets: [{
-          label: '${title}',
-          data: ${JSON.stringify(values)},
-          backgroundColor: ${JSON.stringify(colors)},
+          label: ${toJsonScriptValue(title)},
+          data: ${toJsonScriptValue(values)},
+          backgroundColor: ${toJsonScriptValue(colors)},
           borderWidth: 2,
           borderColor: 'var(--vf-background, #ffffff)',
         }]
@@ -80,7 +80,7 @@ function buildHtml(
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '${cutout}',
+        cutout: ${toJsonScriptValue(cutout)},
         plugins: {
           legend: { display: true, position: 'right' },
           tooltip: { enabled: true }

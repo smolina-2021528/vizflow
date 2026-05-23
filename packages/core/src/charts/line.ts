@@ -6,7 +6,7 @@ import {
   generateId,
   buildWrapperCss,
 } from './shared.js'
-
+import { toJsonScriptValue } from '../utils/escape.js'
 // ─── Extended config for line charts ─────────────────────────────
 
 export interface LineChartOptions {
@@ -43,10 +43,10 @@ function buildHtml(
     new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ${JSON.stringify(labels)},
+        labels: ${toJsonScriptValue(labels)},
         datasets: [{
-          label: '${title}',
-          data: ${JSON.stringify(values)},
+          label: ${toJsonScriptValue(title)},
+          data: ${toJsonScriptValue(values)},
           borderColor: '#6366f1',
           backgroundColor: 'rgba(99, 102, 241, 0.15)',
           fill: ${fill},

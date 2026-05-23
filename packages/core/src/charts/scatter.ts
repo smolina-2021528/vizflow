@@ -5,7 +5,7 @@ import {
   generateId,
   buildWrapperCss,
 } from './shared.js'
-
+import { toJsonScriptValue } from '../utils/escape.js'
 // ─── Extended config for scatter charts ──────────────────────────
 
 export interface ScatterChartOptions {
@@ -44,8 +44,8 @@ function buildHtml(
       type: 'scatter',
       data: {
         datasets: [{
-          label: '${title}',
-          data: ${JSON.stringify(points)},
+          label: ${toJsonScriptValue(title)},
+          data: ${toJsonScriptValue(points)},
           backgroundColor: '#6366f1',
           pointRadius: ${pointRadius},
           pointHoverRadius: ${pointRadius + 2},
@@ -60,11 +60,11 @@ function buildHtml(
         },
         scales: {
           x: {
-            title: { display: true, text: '${xAxisLabel}' },
+            title: { display: true, text: ${toJsonScriptValue(xAxisLabel)} },
             grid: { display: true }
           },
           y: {
-            title: { display: true, text: '${yAxisLabel}' },
+            title: { display: true, text: ${toJsonScriptValue(yAxisLabel)} },
             beginAtZero: false
           }
         }
