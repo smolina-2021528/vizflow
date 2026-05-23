@@ -108,7 +108,10 @@ export async function run(): Promise<void> {
     message: 'Rows per page? (0 to disable pagination)',
     default: '10',
   })
-  const pageSize = parseInt(pageSizeRaw) || 10
+  
+  const parsedPageSize = parseInt(pageSizeRaw, 10)
+  const pageSize = Number.isNaN(parsedPageSize) ? 10 : parsedPageSize
+
 
   const theme = await input({
     message: 'Theme? (light / dark)',
