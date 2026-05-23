@@ -86,3 +86,50 @@ export function buildWrapperCss(
 }
   `.trim()
 }
+
+/** Shared JavaScript used by charts to resolve CSS variable colors at runtime */
+export function buildChartColorScript(): string {
+  return `
+    const rootStyles = getComputedStyle(document.documentElement)
+
+    function vfColor(name, fallback) {
+      return rootStyles.getPropertyValue(name).trim() || fallback
+    }
+
+    function vfWithAlpha(color, alpha) {
+      const normalized = color.trim()
+
+      if (/^#[0-9a-f]{3}$/i.test(normalized)) {
+        const r = normalized[1] + normalized[1]
+        const g = normalized[2] + normalized[2]
+        const b = normalized[3] + normalized[3]
+        return 'rgba(' + parseInt(r, 16) + ', ' + parseInt(g, 16) + ', ' + parseInt(b, 16) + ', ' + alpha + ')'
+      }
+
+      if (/^#[0-9a-f]{6}$/i.test(normalized)) {
+        const r = normalized.slice(1, 3)
+        const g = normalized.slice(3, 5)
+        const b = normalized.slice(5, 7)
+        return 'rgba(' + parseInt(r, 16) + ', ' + parseInt(g, 16) + ', ' + parseInt(b, 16) + ', ' + alpha + ')'
+      }
+
+      if (/^rgb\\(/i.test(normalized)) {
+        return normalized.replace(/^rgb\\(/i, 'rgba(').replace(/\\)$/, ', ' + alpha + ')')
+      }
+
+      if (/^hsl\\(/i.test(normalized)) {
+        return normalized.replace(/^hsl\\(/i, 'hsla(').replace(/\\)$/, ', ' + alpha + ')')
+      }
+
+      return normalized
+    }
+
+    const vfChartColors = [
+      vfColor('--vf-chart-1', '#6366f1'),
+      vfColor('--vf-chart-2', '#8b5cf6'),
+      vfColor('--vf-chart-3', '#ec4899'),
+      vfColor('--vf-chart-4', '#f59e0b'),
+      vfColor('--vf-chart-5', '#10b981')
+    ]
+  `.trimEnd()
+}

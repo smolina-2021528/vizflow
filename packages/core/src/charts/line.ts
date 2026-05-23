@@ -5,6 +5,7 @@ import {
   extractValues,
   generateId,
   buildWrapperCss,
+  buildChartColorScript,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
 // ─── Extended config for line charts ─────────────────────────────
@@ -37,7 +38,9 @@ function buildHtml(
 </div>
 <script>
   (function () {
+    ${buildChartColorScript()}
 
+    const primaryColor = vfChartColors[0]
     const ctx = document.getElementById('vf-canvas-${id}')
 
     new Chart(ctx, {
@@ -47,8 +50,8 @@ function buildHtml(
         datasets: [{
           label: ${toJsonScriptValue(title)},
           data: ${toJsonScriptValue(values)},
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.15)',
+          borderColor: primaryColor,
+          backgroundColor: vfWithAlpha(primaryColor, 0.15),
           fill: ${fill},
           tension: ${tension},
           pointRadius: ${showPoints ? 4 : 0},

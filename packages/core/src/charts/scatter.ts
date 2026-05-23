@@ -4,6 +4,7 @@ import {
   extractPoints,
   generateId,
   buildWrapperCss,
+  buildChartColorScript,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
 // ─── Extended config for scatter charts ──────────────────────────
@@ -37,6 +38,7 @@ function buildHtml(
 </div>
 <script>
   (function () {
+    ${buildChartColorScript()}
 
     const ctx = document.getElementById('vf-canvas-${id}')
 
@@ -46,7 +48,7 @@ function buildHtml(
         datasets: [{
           label: ${toJsonScriptValue(title)},
           data: ${toJsonScriptValue(points)},
-          backgroundColor: '#6366f1',
+          backgroundColor: vfChartColors[0],
           pointRadius: ${pointRadius},
           pointHoverRadius: ${pointRadius + 2},
         }]

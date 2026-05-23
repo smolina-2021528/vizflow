@@ -5,6 +5,7 @@ import {
   extractValues,
   generateId,
   buildWrapperCss,
+  buildChartColorScript,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
 // ─── Extended config for pie charts ──────────────────────────────
@@ -24,24 +25,6 @@ export interface PieChartOptions {
  * Generates an array of RGBA colors for each pie slice.
  * Uses indigo as base color with varying opacity levels.
  */
-function buildColorPalette(count: number): string[] {
-  const baseColors = [
-    'rgba(99, 102, 241, 0.85)',
-    'rgba(139, 92, 246, 0.85)',
-    'rgba(59, 130, 246, 0.85)',
-    'rgba(16, 185, 129, 0.85)',
-    'rgba(245, 158, 11, 0.85)',
-    'rgba(239, 68, 68, 0.85)',
-    'rgba(236, 72, 153, 0.85)',
-    'rgba(14, 165, 233, 0.85)',
-  ]
-
-  // If more slices than base colors, cycle through them
-  return Array.from(
-    { length: count },
-    (_, i) => baseColors[i % baseColors.length]
-  )
-}
 
 // ─── HTML builder ─────────────────────────────────────────────────
 
@@ -54,7 +37,6 @@ function buildHtml(
 ): string {
   const donut = options.donut ?? false
   const cutout = donut ? `${options.cutoutPercent ?? 60}%` : '0%'
-  const colors = buildColorPalette(values.length)
 
   return `
 <div id="vf-${id}">
@@ -62,8 +44,10 @@ function buildHtml(
 </div>
 <script>
   (function () {
+    ${buildChartColorScript()}
 
     const ctx = document.getElementById('vf-canvas-${id}')
+    const pieValues = ${toJsonScriptValue(values)}
 
     new Chart(ctx, {
       type: 'pie',
@@ -71,10 +55,12 @@ function buildHtml(
         labels: ${toJsonScriptValue(labels)},
         datasets: [{
           label: ${toJsonScriptValue(title)},
-          data: ${toJsonScriptValue(values)},
-          backgroundColor: ${toJsonScriptValue(colors)},
+          data: pieValues,
+          backgroundColor: pieValues.map(function (_, index) {
+            return vfChartColors[index % vfChartColors.length]
+          }),
           borderWidth: 2,
-          borderColor: 'var(--vf-background, #ffffff)',
+          borderColor: vfColor('--vf-background', '#ffffff'),
         }]
       },
       options: {

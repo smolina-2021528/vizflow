@@ -5,6 +5,7 @@ import {
   extractValues,
   generateId,
   buildWrapperCss,
+  buildChartColorScript,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
 // ─── HTML builder ─────────────────────────────────────────────────
@@ -21,6 +22,8 @@ function buildHtml(
 </div>
 <script>
   (function () {
+    ${buildChartColorScript()}
+
     const ctx = document.getElementById('vf-canvas-${id}')
 
     new Chart(ctx, {
@@ -30,7 +33,7 @@ function buildHtml(
         datasets: [{
           label: ${toJsonScriptValue(title)},
           data: ${toJsonScriptValue(values)},
-          backgroundColor: '#6366f1',
+          backgroundColor: vfChartColors[0],
           borderRadius: 4,
           borderSkipped: false,
         }]
