@@ -2,21 +2,25 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
 
 jobs:
-  lint-and-test:
-    name: Lint & Test
+  build-and-test:
+    name: Build and test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
 
@@ -32,5 +36,8 @@ jobs:
       - name: Run lint
         run: pnpm lint
 
-      # - name: Run tests
-      #   run: pnpm test
+      - name: Run build
+        run: pnpm build
+
+      - name: Run tests
+        run: pnpm test
