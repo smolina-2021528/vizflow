@@ -14,14 +14,16 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
-    }
+    },
+    "./themes/*.css": "./dist/themes/*.css",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "dev": "vite build --watch",
-    "build": "vite build",
+    "build": "vite build && node scripts/copy-themes.mjs",
     "test": "vitest run",
     "lint": "eslint ."
   },
