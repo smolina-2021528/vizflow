@@ -1,12 +1,20 @@
 // ─── /table wizard ───────────────────────────────────────────────
 
-import { input } from '@inquirer/prompts'
+import { select, input } from '@inquirer/prompts'
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 
-import { table } from '@vizflow/core'
+import { table, toHtmlFile } from '@vizflow/core'
 import type { TableConfig, ColumnDef, DataRow } from '@vizflow/core'
+import type { BuiltInThemeName } from '@vizflow/core'
 
+
+const themeChoices: { name: string; value: BuiltInThemeName }[] = [
+  { name: 'Light', value: 'light' },
+  { name: 'Dark', value: 'dark' },
+  { name: 'Hot', value: 'hot' },
+  { name: 'Cold', value: 'cold' },
+]
 // ─── Column builder ───────────────────────────────────────────────
 
 async function collectColumns(): Promise<ColumnDef[]> {
@@ -61,24 +69,18 @@ async function collectRows(columns: ColumnDef[]): Promise<DataRow[]> {
 
 // ─── HTML file writer ─────────────────────────────────────────────
 
-function writeHtml(filename: string, rendered: string, theme: string): void {
-  const themeStyle =
-    theme === 'dark'
-      ? `<style>:root{--vf-primary:#818cf8;--vf-on-primary:#1e1b4b;--vf-background:#1f2937;--vf-text:#f9fafb;--vf-border:#374151;--vf-row-alt:#273244;--vf-row-hover:#312e81;--vf-radius:8px;--vf-font:system-ui,sans-serif}</style>`
-      : `<style>:root{--vf-primary:#6366f1;--vf-on-primary:#ffffff;--vf-background:#ffffff;--vf-text:#111827;--vf-border:#e5e7eb;--vf-row-alt:#f5f5f5;--vf-row-hover:#ede9fe;--vf-radius:8px;--vf-font:system-ui,sans-serif}</style>`
-
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VizFlow Table</title>
-  ${themeStyle}
-</head>
-<body style="padding:32px;background:var(--vf-background)">
-  ${rendered}
-</body>
-</html>`
+function writeHtml(
+  filename: string,
+  config: TableConfig,
+  pageSize: number,
+  theme: BuiltInThemeName
+): void {
+  const output = table(config, { pageSize })
+  const html = toHtmlFile(output, {
+    title: 'VizFlow Table',
+    theme,
+    includeChartJs: false,
+  })
 
   const outPath = resolve(process.cwd(), filename)
   writeFileSync(outPath, html, 'utf-8')
@@ -113,9 +115,9 @@ export async function run(): Promise<void> {
   const pageSize = Number.isNaN(parsedPageSize) ? 10 : parsedPageSize
 
 
-  const theme = await input({
-    message: 'Theme? (light / dark)',
-    default: 'light',
+  const theme = await select<BuiltInThemeName>({
+  message: 'Theme?',
+  choices: themeChoices,
   })
 
   const filename = await input({
@@ -128,6 +130,5 @@ export async function run(): Promise<void> {
     data: { kind: 'inline', rows },
   }
 
-  const rendered = table(config, { pageSize }).render()
-  writeHtml(filename, rendered, theme)
+  writeHtml(filename, config, pageSize, theme)
 }

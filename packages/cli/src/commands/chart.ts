@@ -11,8 +11,17 @@ import {
   scatterChart,
   parseCsv,
   parseJson,
+  toHtmlFile,
 } from '@vizflow/core'
-import type { ChartConfig, DataRow } from '@vizflow/core'
+import type { ChartConfig, DataRow, VizFlowOutput } from '@vizflow/core'
+import type { BuiltInThemeName } from '@vizflow/core'
+
+const themeChoices: { name: string; value: BuiltInThemeName }[] = [
+  { name: 'Light', value: 'light' },
+  { name: 'Dark', value: 'dark' },
+  { name: 'Hot', value: 'hot' },
+  { name: 'Cold', value: 'cold' },
+]
 
 type ChartType = 'bar' | 'line' | 'pie' | 'scatter'
 type DataSource = 'manual' | 'csv' | 'json'
@@ -98,25 +107,16 @@ async function collectJsonRows(): Promise<DataRow[]> {
 
 // ─── HTML file writer ─────────────────────────────────────────────
 
-function writeHtml(filename: string, rendered: string, theme: string): void {
-  const themeStyle =
-    theme === 'dark'
-      ? `<style>:root{--vf-primary:#818cf8;--vf-on-primary:#1e1b4b;--vf-background:#1f2937;--vf-text:#f9fafb;--vf-border:#374151;--vf-radius:8px;--vf-font:system-ui,sans-serif}</style>`
-      : `<style>:root{--vf-primary:#6366f1;--vf-on-primary:#ffffff;--vf-background:#ffffff;--vf-text:#111827;--vf-border:#e5e7eb;--vf-radius:8px;--vf-font:system-ui,sans-serif}</style>`
-
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VizFlow Chart</title>
-  ${themeStyle}
-</head>
-<body style="padding:32px;background:var(--vf-background)">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>
-  ${rendered}
-</body>
-</html>`
+function writeHtml(
+  filename: string,
+  output: VizFlowOutput,
+  theme: BuiltInThemeName
+): void {
+  const html = toHtmlFile(output, {
+    title: 'VizFlow Chart',
+    theme,
+    includeChartJs: true,
+  })
 
   const outPath = resolve(process.cwd(), filename)
   writeFileSync(outPath, html, 'utf-8')
@@ -125,16 +125,16 @@ function writeHtml(filename: string, rendered: string, theme: string): void {
 
 // ─── Generator selector ───────────────────────────────────────────
 
-function generate(type: ChartType, config: ChartConfig): string {
+function generate(type: ChartType, config: ChartConfig): VizFlowOutput {
   switch (type) {
     case 'bar':
-      return barChart(config).render()
+      return barChart(config)
     case 'line':
-      return lineChart(config).render()
+      return lineChart(config)
     case 'pie':
-      return pieChart(config).render()
+      return pieChart(config)
     case 'scatter':
-      return scatterChart(config).render()
+      return scatterChart(config)
   }
 }
 
@@ -192,13 +192,10 @@ export async function run(): Promise<void> {
     return
   }
 
-  const theme = await select<'light' | 'dark'>({
-    message: 'Theme?',
-    choices: [
-      { name: 'Light', value: 'light' },
-      { name: 'Dark', value: 'dark' },
-    ],
-  })
+  const theme = await select<BuiltInThemeName>({
+  message: 'Theme?',
+  choices: themeChoices,
+})
 
   const filename = await input({
     message: 'Output filename?',
@@ -213,6 +210,6 @@ export async function run(): Promise<void> {
     data: { kind: 'inline', rows },
   }
 
-  const rendered = generate(type, config)
-  writeHtml(filename, rendered, theme)
+  const output = generate(type, config)
+  writeHtml(filename, output, theme)
 }
