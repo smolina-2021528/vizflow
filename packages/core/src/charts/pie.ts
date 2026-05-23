@@ -37,6 +37,7 @@ function buildHtml(
 ): string {
   const donut = options.donut ?? false
   const cutout = donut ? `${options.cutoutPercent ?? 60}%` : '0%'
+  const showPercentages = options.showPercentages ?? false
 
   return `
 <div id="vf-${id}">
@@ -69,7 +70,27 @@ function buildHtml(
         cutout: ${toJsonScriptValue(cutout)},
         plugins: {
           legend: { display: true, position: 'right' },
-          tooltip: { enabled: true }
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function (context) {
+                const label = context.label || ''
+                const value = Number(context.parsed) || 0
+
+                if (!${showPercentages}) {
+                  return label + ': ' + value
+                }
+
+                const data = context.dataset.data || []
+                const total = data.reduce(function (sum, item) {
+                  return sum + (Number(item) || 0)
+                }, 0)
+                const percentage = total === 0 ? 0 : (value / total) * 100
+
+                return label + ': ' + value + ' (' + percentage.toFixed(1) + '%)'
+              }
+            }
+          }
         }
       }
     })
