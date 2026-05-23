@@ -12,7 +12,8 @@
 - **Bar, Line, Pie and Scatter** charts via Chart.js
 - **HTML tables** with client-side sorting and pagination
 - **Conversational CLI wizard** — no config knowledge required
-- **CSS theming** via custom properties (`--vf-primary`, `--vf-radius`, etc.)
+- **Built-in themes**: `light`, `dark`, `hot` and `cold`
+- **CSS theming** via custom properties (`--vf-primary`, `--vf-chart-1`, etc.)
 - **Dual package** — ESM + CJS, works in browser and Node.js
 - **Full TypeScript** — typed API for all parameters
 - **External datasources** — load from `.csv` or `.json` files
@@ -27,13 +28,7 @@ npm install @vizflow/core
 
 # CLI wizard
 npm install -g @vizflow/cli
-```
-
----
-
-## 🚀 Mode 1 — Programmatic API
-
-```typescript
+🚀 Mode 1 — Programmatic API
 import { barChart } from '@vizflow/core'
 
 const output = barChart({
@@ -52,11 +47,7 @@ const output = barChart({
 })
 
 document.getElementById('container').innerHTML = output.render()
-```
-
-### Available generators
-
-```typescript
+Available generators
 import {
   barChart,
   lineChart,
@@ -64,93 +55,79 @@ import {
   scatterChart,
   table,
 } from '@vizflow/core'
-```
-
-### Standalone HTML file
-
-```typescript
+Standalone HTML file
 import { barChart, toHtmlFile } from '@vizflow/core'
 import { writeFileSync } from 'fs'
 
 const output = barChart({ ... })
-const html = toHtmlFile(output, { title: 'My Chart', theme: 'dark' })
+const html = toHtmlFile(output, {
+  title: 'Sales Dashboard',
+  theme: 'hot',
+})
+
 writeFileSync('chart.html', html)
-```
-
-### Embeddable snippet
-
-```typescript
+Embeddable snippet
 import { barChart, toEmbedSnippet } from '@vizflow/core'
 
 const output = barChart({ ... })
 const snippet = toEmbedSnippet(output)
 console.log(snippet) // paste into any HTML page
-```
-
----
-
-## 🧙 Mode 2 — CLI Wizard
-
-```bash
+🧙 Mode 2 — CLI Wizard
 npx @vizflow/cli
-```
-
-```
 ? What do you want to generate?
   ❯ /chart   — Generate a chart from your data
     /table   — Generate a table from your data
     /heatmap — Generate a heatmap from your data
-```
 
-The wizard asks step-by-step questions and generates a ready-to-use `.html` file.
+The wizard asks step-by-step questions and generates a ready-to-use .html file.
 
-### Supported data sources
-
-| Source | Description                           |
-| ------ | ------------------------------------- |
-| Manual | Enter rows one by one in the terminal |
-| CSV    | Point to a local `.csv` file          |
-| JSON   | Point to a local `.json` file         |
-
-### CSV format
-
-```csv
+Supported data sources
+Source	Description
+Manual	Enter rows one by one in the terminal
+CSV	Point to a local .csv file
+JSON	Point to a local .json file
+CSV format
 month,sales
 Jan,1200
 Feb,950
 Mar,1400
-```
-
-### JSON format
-
-```json
+JSON format
 [
   { "month": "Jan", "sales": 1200 },
   { "month": "Feb", "sales": 950 },
   { "month": "Mar", "sales": 1400 }
 ]
-```
+🎨 Mode 3 — CSS Theming
 
----
+VizFlow includes four built-in themes:
 
-## 🎨 Mode 3 — CSS Theming
+Theme	Description
+light	Clean light interface
+dark	Dark interface for dashboards
+hot	Warm, energetic visual palette
+cold	Cool, calm blue visual palette
+Use a theme with toHtmlFile()
+import { barChart, toHtmlFile } from '@vizflow/core'
 
-Import a built-in theme or override variables directly:
+const output = barChart({ ... })
 
-```html
-<!-- Light theme -->
-<link
-  rel="stylesheet"
-  href="node_modules/@vizflow/core/dist/themes/light.css"
-/>
+const html = toHtmlFile(output, {
+  title: 'Sales Dashboard',
+  theme: 'hot',
+})
+Import built-in theme CSS
+import '@vizflow/core/themes/light.css'
+import '@vizflow/core/themes/dark.css'
+import '@vizflow/core/themes/hot.css'
+import '@vizflow/core/themes/cold.css'
 
-<!-- Dark theme -->
+You can also load the generated CSS directly in HTML:
+
+<link rel="stylesheet" href="node_modules/@vizflow/core/dist/themes/light.css" />
 <link rel="stylesheet" href="node_modules/@vizflow/core/dist/themes/dark.css" />
-```
-
-### Custom theme
-
-```css
+<link rel="stylesheet" href="node_modules/@vizflow/core/dist/themes/hot.css" />
+<link rel="stylesheet" href="node_modules/@vizflow/core/dist/themes/cold.css" />
+Custom theme
 :root {
   --vf-primary: #10b981;
   --vf-background: #0f172a;
@@ -158,29 +135,24 @@ Import a built-in theme or override variables directly:
   --vf-radius: 12px;
   --vf-font: 'Inter', sans-serif;
 }
-```
-
-### Available CSS variables
-
-| Variable          | Description     | Default     |
-| ----------------- | --------------- | ----------- |
-| `--vf-primary`    | Accent color    | `#6366f1`   |
-| `--vf-on-primary` | Text on primary | `#ffffff`   |
-| `--vf-background` | Page background | `#ffffff`   |
-| `--vf-surface`    | Card background | `#f9fafb`   |
-| `--vf-text`       | Primary text    | `#111827`   |
-| `--vf-text-muted` | Secondary text  | `#6b7280`   |
-| `--vf-border`     | Border color    | `#e5e7eb`   |
-| `--vf-radius`     | Border radius   | `8px`       |
-| `--vf-font`       | Font family     | `system-ui` |
-
----
-
-## 📊 Chart Options
-
-### Line Chart
-
-```typescript
+Available CSS variables
+Variable	Description	Default
+--vf-primary	Accent color	#6366f1
+--vf-on-primary	Text on primary	#ffffff
+--vf-background	Page background	#ffffff
+--vf-surface	Card background	#f9fafb
+--vf-text	Primary text	#111827
+--vf-text-muted	Secondary text	#6b7280
+--vf-border	Border color	#e5e7eb
+--vf-radius	Border radius	8px
+--vf-font	Font family	system-ui
+--vf-chart-1	First chart series color	Theme value
+--vf-chart-2	Second chart series color	Theme value
+--vf-chart-3	Third chart series color	Theme value
+--vf-chart-4	Fourth chart series color	Theme value
+--vf-chart-5	Fifth chart series color	Theme value
+📊 Chart Options
+Line Chart
 import { lineChart } from '@vizflow/core'
 
 lineChart(config, {
@@ -188,22 +160,15 @@ lineChart(config, {
   showPoints: true, // show data point dots
   tension: 0.3, // line smoothness (0-1)
 })
-```
-
-### Pie Chart
-
-```typescript
+Pie Chart
 import { pieChart } from '@vizflow/core'
 
 pieChart(config, {
   donut: true, // render as donut chart
   cutoutPercent: 60, // donut hole size (0-100)
+  showPercentages: true, // show percentages in the tooltip
 })
-```
-
-### Scatter Chart
-
-```typescript
+Scatter Chart
 import { scatterChart } from '@vizflow/core'
 
 scatterChart(config, {
@@ -211,54 +176,68 @@ scatterChart(config, {
   xAxisLabel: 'Height (cm)',
   yAxisLabel: 'Weight (kg)',
 })
-```
-
-### Table
-
-```typescript
+📋 Table Options
 import { table } from '@vizflow/core'
 
+table(
+  {
+    title: 'Users',
+    columns: [
+      {
+        key: 'name',
+        label: 'Name',
+        sortable: false,
+        width: '240px',
+      },
+      {
+        key: 'email',
+        label: 'Email',
+      },
+    ],
+    data: {
+      kind: 'inline',
+      rows: [
+        { name: 'Ana', email: 'ana@example.com' },
+        { name: 'Luis', email: 'luis@example.com' },
+      ],
+    },
+  },
+  {
+    pageSize: 10,
+  },
+)
+Disable pagination
+
+Use pageSize: 0 when you want to render all rows without pagination.
+
 table(config, {
-  pageSize: 10, // rows per page (0 = no pagination)
+  pageSize: 0,
 })
-```
-
----
-
-## 🗂️ Monorepo structure
-
-```
+🗂️ Monorepo structure
 vizflow/
 ├── packages/
 │   ├── core/    # Chart, table generators and parsers
 │   └── cli/     # Conversational CLI wizard
 ├── playground/  # Visual demo app (Vite)
 └── docs/        # Documentation
-```
-
----
-
-## 🛠️ Development
-
-```bash
+🛠️ Development
 # Install dependencies
 pnpm install
 
-# Build core
-pnpm --filter @vizflow/core build
+# Run lint
+pnpm lint
 
-# Run CLI in dev mode
-pnpm --filter @vizflow/cli dev
-
-# Run playground
-pnpm --filter @vizflow/playground dev
+# Build all packages
+pnpm build
 
 # Run tests
-pnpm --filter @vizflow/core test
-```
+pnpm test
 
----
+# Build only core
+pnpm --filter @vizflow/core build
 
-## 📄 License
+# Run CLI in development
+pnpm --filter @vizflow/cli dev
+📄 License
 
-MIT © VizFlow.js contributors
+MIT © Alejandro Molina
