@@ -29,6 +29,53 @@ describe('barChart', () => {
     expect(output.render()).toContain('<style>')
   })
 
+  it('renders the chart inside a visual card container', () => {
+    const output = barChart({
+      ...baseConfig,
+      subtitle: 'Quarterly performance',
+    })
+
+    expect(output.html).toContain('class="vf-chart-card"')
+    expect(output.html).toContain('class="vf-chart-title"')
+    expect(output.html).toContain('Test Chart')
+    expect(output.html).toContain('Quarterly performance')
+    expect(output.css).toContain('box-shadow')
+    expect(output.css).toContain('border-radius')
+  })
+
+  it('escapes chart title and subtitle inside the visual header', () => {
+    const output = barChart({
+      ...baseConfig,
+      title: '<Title>',
+      subtitle: '<Subtitle>',
+    })
+
+    expect(output.html).toContain('&lt;Title&gt;')
+    expect(output.html).toContain('&lt;Subtitle&gt;')
+    expect(output.html).not.toContain('<Title>')
+    expect(output.html).not.toContain('<Subtitle>')
+  })
+
+  it('supports disabling the visual card appearance', () => {
+    const output = barChart({
+      ...baseConfig,
+      appearance: {
+        card: false,
+      },
+    })
+
+    expect(output.css).toContain('background: transparent')
+    expect(output.css).toContain('border: none')
+    expect(output.css).toContain('box-shadow: none')
+    expect(output.css).toContain('padding: 0')
+  })
+
+  it('uses a Chart.js runtime guard', () => {
+    const output = barChart(baseConfig)
+
+    expect(output.html).toContain('Chart.js is required to render charts')
+  })
+
   it('escapes dangerous script sequences inside chart titles', () => {
     const output = barChart({
       ...baseConfig,

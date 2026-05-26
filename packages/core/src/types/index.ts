@@ -38,9 +38,30 @@ export type Theme =
 
 export type ChartType = 'bar' | 'line' | 'pie' | 'scatter'
 
+export type ChartRounded = 'none' | 'sm' | 'md' | 'lg' | 'xl'
+
+export interface ChartAppearance {
+  /**
+   * Render the chart inside a dashboard-style card.
+   * Defaults to true.
+   */
+  card?: boolean
+  /**
+   * Add a soft shadow to the chart card.
+   * Defaults to true when card is enabled.
+   */
+  shadow?: boolean
+  /**
+   * Border radius style for the chart card.
+   * Defaults to 'lg'.
+   */
+  rounded?: ChartRounded
+}
+
 export interface ChartConfig {
   type: ChartType
   title?: string
+  subtitle?: string
   data: DataSource
   /** Key from DataRow used as the X axis */
   xKey: string
@@ -49,6 +70,7 @@ export interface ChartConfig {
   theme?: Theme
   width?: number
   height?: number
+  appearance?: ChartAppearance
 }
 
 // ─── Table types ──────────────────────────────────────────────────

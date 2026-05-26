@@ -6,6 +6,8 @@ import {
   generateId,
   buildWrapperCss,
   buildChartColorScript,
+  buildChartRuntimeGuard,
+  buildChartShellHtml,
   sanitizeBoolean,
   sanitizeFiniteNumber,
 } from './shared.js'
@@ -29,7 +31,8 @@ function buildHtml(
   labels: string[],
   values: number[],
   title: string,
-  options: LineChartOptions
+  options: LineChartOptions,
+  subtitle?: string
 ): string {
   const fill = sanitizeBoolean(options.fill, false)
   const showPoints = sanitizeBoolean(options.showPoints, true)
@@ -39,11 +42,10 @@ function buildHtml(
   })
 
   return `
-<div id="vf-${id}">
-  <canvas id="vf-canvas-${id}"></canvas>
-</div>
+${buildChartShellHtml(id, title, subtitle)}
 <script>
   (function () {
+    ${buildChartRuntimeGuard()}
     ${buildChartColorScript()}
 
     const primaryColor = vfChartColors[0]
@@ -57,23 +59,49 @@ function buildHtml(
           label: ${toJsonScriptValue(title)},
           data: ${toJsonScriptValue(values)},
           borderColor: primaryColor,
-          backgroundColor: vfWithAlpha(primaryColor, 0.15),
+          backgroundColor: vfWithAlpha(primaryColor, 0.14),
           fill: ${fill},
           tension: ${tension},
+          borderWidth: 3,
           pointRadius: ${showPoints ? 4 : 0},
           pointHoverRadius: ${showPoints ? 6 : 0},
+          pointBackgroundColor: primaryColor,
+          pointBorderColor: vfSurfaceColor,
+          pointBorderWidth: 2,
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },
         plugins: {
-          legend: { display: true, position: 'top' },
-          tooltip: { enabled: true }
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            backgroundColor: vfSurfaceColor,
+            titleColor: vfTextColor,
+            bodyColor: vfTextColor,
+            borderColor: vfBorderColor,
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false
+          }
         },
         scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true }
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { color: vfMutedTextColor }
+          },
+          y: {
+            beginAtZero: true,
+            border: { display: false },
+            ticks: { color: vfMutedTextColor },
+            grid: { color: vfWithAlpha(vfBorderColor, 0.65) }
+          }
         }
       }
     })
@@ -105,8 +133,8 @@ export function lineChart(
   const labels = extractLabels(rows, config.xKey)
   const values = extractValues(rows, config.yKey)
 
-  const html = buildHtml(id, labels, values, title, options)
-  const css = buildWrapperCss(id, width, height)
+  const html = buildHtml(id, labels, values, title, options, config.subtitle)
+  const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {
     html,

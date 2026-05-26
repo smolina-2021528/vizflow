@@ -6,6 +6,8 @@ import {
   generateId,
   buildWrapperCss,
   buildChartColorScript,
+  buildChartRuntimeGuard,
+  buildChartShellHtml,
   sanitizeFiniteNumber,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
@@ -16,14 +18,14 @@ function buildHtml(
   id: string,
   labels: string[],
   values: number[],
-  title: string
+  title: string,
+  subtitle?: string
 ): string {
   return `
-<div id="vf-${id}">
-  <canvas id="vf-canvas-${id}"></canvas>
-</div>
+${buildChartShellHtml(id, title, subtitle)}
 <script>
   (function () {
+    ${buildChartRuntimeGuard()}
     ${buildChartColorScript()}
 
     const ctx = document.getElementById('vf-canvas-${id}')
@@ -35,21 +37,46 @@ function buildHtml(
         datasets: [{
           label: ${toJsonScriptValue(title)},
           data: ${toJsonScriptValue(values)},
-          backgroundColor: vfChartColors[0],
-          borderRadius: 4,
+          backgroundColor: vfWithAlpha(vfChartColors[0], 0.88),
+          borderColor: vfChartColors[0],
+          borderWidth: 1,
+          borderRadius: 8,
           borderSkipped: false,
+          hoverBackgroundColor: vfChartColors[0],
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },
         plugins: {
-          legend: { display: true, position: 'top' },
-          tooltip: { enabled: true }
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            backgroundColor: vfSurfaceColor,
+            titleColor: vfTextColor,
+            bodyColor: vfTextColor,
+            borderColor: vfBorderColor,
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false
+          }
         },
         scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true }
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { color: vfMutedTextColor }
+          },
+          y: {
+            beginAtZero: true,
+            border: { display: false },
+            ticks: { color: vfMutedTextColor },
+            grid: { color: vfWithAlpha(vfBorderColor, 0.65) }
+          }
         }
       }
     })
@@ -77,8 +104,8 @@ export function barChart(config: ChartConfig): VizFlowOutput {
   const labels = extractLabels(rows, config.xKey)
   const values = extractValues(rows, config.yKey)
 
-  const html = buildHtml(id, labels, values, title)
-  const css = buildWrapperCss(id, width, height)
+  const html = buildHtml(id, labels, values, title, config.subtitle)
+  const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {
     html,

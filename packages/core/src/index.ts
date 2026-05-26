@@ -8,6 +8,8 @@ export type {
   ThemeName,
   CustomTheme,
   ChartType,
+  ChartRounded,
+  ChartAppearance,
   ChartConfig,
   ColumnDef,
   TableConfig,

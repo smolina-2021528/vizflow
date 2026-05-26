@@ -6,6 +6,8 @@ import {
   generateId,
   buildWrapperCss,
   buildChartColorScript,
+  buildChartRuntimeGuard,
+  buildChartShellHtml,
   sanitizeBoolean,
   sanitizeFiniteNumber,
 } from './shared.js'
@@ -29,7 +31,8 @@ function buildHtml(
   labels: string[],
   values: number[],
   title: string,
-  options: PieChartOptions
+  options: PieChartOptions,
+  subtitle?: string
 ): string {
   const donut = sanitizeBoolean(options.donut, false)
   const cutoutPercent = sanitizeFiniteNumber(options.cutoutPercent, 60, {
@@ -40,11 +43,10 @@ function buildHtml(
   const showPercentages = sanitizeBoolean(options.showPercentages, false)
 
   return `
-<div id="vf-${id}">
-  <canvas id="vf-canvas-${id}"></canvas>
-</div>
+${buildChartShellHtml(id, title, subtitle)}
 <script>
   (function () {
+    ${buildChartRuntimeGuard()}
     ${buildChartColorScript()}
 
     const ctx = document.getElementById('vf-canvas-${id}')
@@ -61,7 +63,8 @@ function buildHtml(
             return vfChartColors[index % vfChartColors.length]
           }),
           borderWidth: 2,
-          borderColor: vfColor('--vf-background', '#ffffff'),
+          borderColor: vfSurfaceColor,
+          hoverOffset: 6,
         }]
       },
       options: {
@@ -69,9 +72,25 @@ function buildHtml(
         maintainAspectRatio: false,
         cutout: ${toJsonScriptValue(cutout)},
         plugins: {
-          legend: { display: true, position: 'right' },
+          legend: {
+            display: true,
+            position: 'right',
+            labels: {
+              color: vfMutedTextColor,
+              boxWidth: 12,
+              boxHeight: 12,
+              padding: 16,
+              usePointStyle: true
+            }
+          },
           tooltip: {
             enabled: true,
+            backgroundColor: vfSurfaceColor,
+            titleColor: vfTextColor,
+            bodyColor: vfTextColor,
+            borderColor: vfBorderColor,
+            borderWidth: 1,
+            padding: 12,
             callbacks: {
               label: function (context) {
                 const label = context.label || ''
@@ -122,8 +141,8 @@ export function pieChart(
   const labels = extractLabels(rows, config.xKey)
   const values = extractValues(rows, config.yKey)
 
-  const html = buildHtml(id, labels, values, title, options)
-  const css = buildWrapperCss(id, width, height)
+  const html = buildHtml(id, labels, values, title, options, config.subtitle)
+  const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {
     html,

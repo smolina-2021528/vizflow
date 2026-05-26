@@ -5,6 +5,8 @@ import {
   generateId,
   buildWrapperCss,
   buildChartColorScript,
+  buildChartRuntimeGuard,
+  buildChartShellHtml,
   sanitizeFiniteNumber,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
@@ -28,7 +30,8 @@ function buildHtml(
   title: string,
   options: ScatterChartOptions,
   xKey: string,
-  yKey: string
+  yKey: string,
+  subtitle?: string
 ): string {
   const pointRadius = sanitizeFiniteNumber(options.pointRadius, 5, {
     min: 0,
@@ -38,11 +41,10 @@ function buildHtml(
   const yAxisLabel = options.yAxisLabel ?? yKey
 
   return `
-<div id="vf-${id}">
-  <canvas id="vf-canvas-${id}"></canvas>
-</div>
+${buildChartShellHtml(id, title, subtitle)}
 <script>
   (function () {
+    ${buildChartRuntimeGuard()}
     ${buildChartColorScript()}
 
     const ctx = document.getElementById('vf-canvas-${id}')
@@ -53,7 +55,8 @@ function buildHtml(
         datasets: [{
           label: ${toJsonScriptValue(title)},
           data: ${toJsonScriptValue(points)},
-          backgroundColor: vfChartColors[0],
+          backgroundColor: vfWithAlpha(vfChartColors[0], 0.88),
+          borderColor: vfChartColors[0],
           pointRadius: ${pointRadius},
           pointHoverRadius: ${pointRadius + 2},
         }]
@@ -62,17 +65,39 @@ function buildHtml(
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: true, position: 'top' },
-          tooltip: { enabled: true }
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            backgroundColor: vfSurfaceColor,
+            titleColor: vfTextColor,
+            bodyColor: vfTextColor,
+            borderColor: vfBorderColor,
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false
+          }
         },
         scales: {
           x: {
-            title: { display: true, text: ${toJsonScriptValue(xAxisLabel)} },
-            grid: { display: true }
+            title: {
+              display: true,
+              text: ${toJsonScriptValue(xAxisLabel)},
+              color: vfMutedTextColor
+            },
+            grid: { color: vfWithAlpha(vfBorderColor, 0.65) },
+            border: { display: false },
+            ticks: { color: vfMutedTextColor }
           },
           y: {
-            title: { display: true, text: ${toJsonScriptValue(yAxisLabel)} },
-            beginAtZero: false
+            title: {
+              display: true,
+              text: ${toJsonScriptValue(yAxisLabel)},
+              color: vfMutedTextColor
+            },
+            beginAtZero: false,
+            grid: { color: vfWithAlpha(vfBorderColor, 0.65) },
+            border: { display: false },
+            ticks: { color: vfMutedTextColor }
           }
         }
       }
@@ -104,8 +129,16 @@ export function scatterChart(
   const rows = resolveData(config)
   const points = extractPoints(rows, config.xKey, config.yKey)
 
-  const html = buildHtml(id, points, title, options, config.xKey, config.yKey)
-  const css = buildWrapperCss(id, width, height)
+  const html = buildHtml(
+    id,
+    points,
+    title,
+    options,
+    config.xKey,
+    config.yKey,
+    config.subtitle
+  )
+  const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {
     html,

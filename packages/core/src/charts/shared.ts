@@ -1,10 +1,17 @@
-import { ChartConfig, DataRow } from '../types/index.js'
+import { ChartAppearance, ChartConfig, DataRow } from '../types/index.js'
+import { escapeHtml } from '../utils/escape.js'
 
 // ─── Shared utilities for all chart generators ────────────────────
 
 interface NumericSanitizerOptions {
   min?: number
   max?: number
+}
+
+interface ResolvedChartAppearance {
+  card: boolean
+  shadow: boolean
+  radius: string
 }
 
 /** Resolves the DataSource from any config that contains a DataSource into a DataRow array */
@@ -147,28 +154,132 @@ export function generateId(): string {
   return generateFallbackId()
 }
 
+function resolveChartAppearance(
+  appearance: ChartAppearance | undefined
+): ResolvedChartAppearance {
+  const card = sanitizeBoolean(appearance?.card, true)
+  const shadow = card ? sanitizeBoolean(appearance?.shadow, true) : false
+
+  const radiusByName: Record<NonNullable<ChartAppearance['rounded']>, string> = {
+    none: '0',
+    sm: '6px',
+    md: '10px',
+    lg: '14px',
+    xl: '20px',
+  }
+
+  const rounded = appearance?.rounded
+  const radius = rounded && rounded in radiusByName ? radiusByName[rounded] : '14px'
+
+  return {
+    card,
+    shadow,
+    radius,
+  }
+}
+
+/** Generates the shared HTML shell for chart visualizations */
+export function buildChartShellHtml(
+  id: string,
+  title: string,
+  subtitle?: string
+): string {
+  const safeTitle = escapeHtml(title)
+  const safeSubtitle = subtitle ? escapeHtml(subtitle) : ''
+
+  const subtitleHtml = safeSubtitle
+    ? `<p class="vf-chart-subtitle">${safeSubtitle}</p>`
+    : ''
+
+  return `
+<div id="vf-${id}" class="vf-chart-card">
+  <div class="vf-chart-header">
+    <h2 class="vf-chart-title">${safeTitle}</h2>
+    ${subtitleHtml}
+  </div>
+  <div class="vf-chart-canvas-wrapper">
+    <canvas id="vf-canvas-${id}" aria-label="${safeTitle}" role="img">
+      ${safeTitle}
+    </canvas>
+  </div>
+</div>
+  `.trim()
+}
+
 /** Generates scoped CSS for any chart wrapper */
 export function buildWrapperCss(
   id: string,
   width: number,
-  height: number
+  height: number,
+  appearance?: ChartAppearance
 ): string {
+  const resolvedAppearance = resolveChartAppearance(appearance)
+
+  const cardBackground = resolvedAppearance.card
+    ? 'var(--vf-surface, #ffffff)'
+    : 'transparent'
+  const cardBorder = resolvedAppearance.card
+    ? '1px solid var(--vf-border, #e5e7eb)'
+    : 'none'
+  const cardPadding = resolvedAppearance.card ? '20px' : '0'
+  const cardShadow =
+    resolvedAppearance.card && resolvedAppearance.shadow
+      ? '0 18px 45px rgba(15, 23, 42, 0.10)'
+      : 'none'
+
   return `
 #vf-${id} {
   width: ${width}px;
+  max-width: 100%;
+  font-family: var(--vf-font, system-ui, sans-serif);
+  color: var(--vf-text, #111827);
+  background: ${cardBackground};
+  border: ${cardBorder};
+  border-radius: ${resolvedAppearance.radius};
+  box-shadow: ${cardShadow};
+  padding: ${cardPadding};
+  box-sizing: border-box;
+}
+#vf-${id} .vf-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+#vf-${id} .vf-chart-title {
+  margin: 0;
+  color: var(--vf-text, #111827);
+  font-size: 1.05rem;
+  line-height: 1.35;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+#vf-${id} .vf-chart-subtitle {
+  margin: 0;
+  color: var(--vf-text-muted, #6b7280);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+#vf-${id} .vf-chart-canvas-wrapper {
+  width: 100%;
   height: ${height}px;
   position: relative;
-  font-family: var(--vf-font, sans-serif);
-  background: var(--vf-background, #ffffff);
-  border-radius: var(--vf-radius, 8px);
-  padding: 16px;
-  box-sizing: border-box;
 }
 #vf-${id} canvas {
   width: 100% !important;
   height: 100% !important;
+  display: block;
 }
   `.trim()
+}
+
+/** Shared JavaScript guard used by charts before creating Chart.js instances */
+export function buildChartRuntimeGuard(): string {
+  return `
+    if (typeof Chart === 'undefined') {
+      throw new Error('[VizFlow] Chart.js is required to render charts. Use toHtmlFile(), toEmbedSnippet(), or load Chart.js before calling render().')
+    }
+  `.trimEnd()
 }
 
 /** Shared JavaScript used by charts to resolve CSS variable colors at runtime */
@@ -215,5 +326,10 @@ export function buildChartColorScript(): string {
       vfColor('--vf-chart-4', '#f59e0b'),
       vfColor('--vf-chart-5', '#10b981')
     ]
+
+    const vfTextColor = vfColor('--vf-text', '#111827')
+    const vfMutedTextColor = vfColor('--vf-text-muted', '#6b7280')
+    const vfBorderColor = vfColor('--vf-border', '#e5e7eb')
+    const vfSurfaceColor = vfColor('--vf-surface', '#ffffff')
   `.trimEnd()
 }
