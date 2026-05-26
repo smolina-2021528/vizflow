@@ -1,5 +1,5 @@
 import { TableConfig, VizFlowOutput } from '../types/index.js'
-import { resolveData, sanitizeInteger } from '../charts/shared.js'
+import { resolveData, sanitizeInteger, generateId } from '../charts/shared.js'
 import { escapeHtml } from '../utils/escape.js'
 
 // ─── Extended config for table ────────────────────────────────────
@@ -229,12 +229,6 @@ function buildTableCss(id: string): string {
   text-align: center;
 }
   `.trim()
-}
-
-// ─── ID generator ─────────────────────────────────────────────────
-
-function generateId(): string {
-  return crypto.randomUUID().slice(0, 8)
 }
 
 // ─── Main generator ───────────────────────────────────────────────

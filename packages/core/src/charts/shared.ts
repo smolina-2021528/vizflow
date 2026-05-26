@@ -116,9 +116,35 @@ export function extractPoints(
   })
 }
 
-/** Generates a unique 8-character ID for scoping chart elements */
+function generateFallbackId(): string {
+  const randomPart = Math.random().toString(36).slice(2, 10)
+  const timePart = Date.now().toString(36).slice(-4)
+
+  return `${randomPart}${timePart}`.slice(0, 8).padEnd(8, '0')
+}
+
+/** Generates a unique 8-character ID for scoping chart and table elements */
 export function generateId(): string {
-  return crypto.randomUUID().slice(0, 8)
+  const cryptoObject = globalThis.crypto
+
+  try {
+    if (typeof cryptoObject?.randomUUID === 'function') {
+      return cryptoObject.randomUUID().replace(/-/g, '').slice(0, 8)
+    }
+
+    if (typeof cryptoObject?.getRandomValues === 'function') {
+      const bytes = new Uint8Array(4)
+      cryptoObject.getRandomValues(bytes)
+
+      return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join(
+        ''
+      )
+    }
+  } catch {
+    return generateFallbackId()
+  }
+
+  return generateFallbackId()
 }
 
 /** Generates scoped CSS for any chart wrapper */
