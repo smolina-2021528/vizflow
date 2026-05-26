@@ -7,7 +7,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@vizflow/core": "workspace:*"
+    "@smolina-dev/vizflow-core": "workspace:*"
   },
   "devDependencies": {
     "vite": "^8.0.8"

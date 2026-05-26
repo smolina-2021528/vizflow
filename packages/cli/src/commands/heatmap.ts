@@ -1,8 +1,8 @@
 // ─── /heatmap wizard ─────────────────────────────────────────────
 
 import { select, input } from '@inquirer/prompts'
-import { buildThemeStyle } from '@vizflow/core'
-import type { BuiltInThemeName } from '@vizflow/core'
+import { buildThemeStyle } from '@smolina-dev/vizflow-core'
+import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 
@@ -30,7 +30,6 @@ function buildHeatmapHtml(data: HeatmapData, title: string): string {
 
   function toColor(value: number): string {
     const ratio = max === min ? 0.5 : (value - min) / (max - min)
-    // cold = 220deg (blue), hot = 0deg (red)
     const hue = Math.round((1 - ratio) * 220)
     const lightness = Math.round(90 - ratio * 40)
     return `hsl(${hue}, 70%, ${lightness}%)`
@@ -159,7 +158,6 @@ async function collectHeatmapData(): Promise<HeatmapData> {
       .map(s => parseFloat(s.trim()))
       .map(n => (isNaN(n) ? 0 : n))
 
-    // Pad or trim to match column count
     while (rowValues.length < colLabels.length) rowValues.push(0)
     rowValues.length = colLabels.length
 
@@ -188,8 +186,8 @@ export async function run(): Promise<void> {
   }
 
   const theme = await select<BuiltInThemeName>({
-  message: 'Theme?',
-  choices: themeChoices,
+    message: 'Theme?',
+    choices: themeChoices,
   })
 
   const filename = await input({

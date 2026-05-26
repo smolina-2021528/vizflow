@@ -4,7 +4,7 @@ import {
   pieChart,
   scatterChart,
   table,
-} from '@vizflow/core'
+} from '@smolina-dev/vizflow-core'
 
 // ─── Sample data ──────────────────────────────────────────────────
 
@@ -106,7 +106,6 @@ function mount(id: string, html: string): void {
 
   el.innerHTML = html
 
-  // Re-execute all script tags injected via innerHTML
   el.querySelectorAll('script').forEach(oldScript => {
     const newScript = document.createElement('script')
     Array.from(oldScript.attributes).forEach(attr =>

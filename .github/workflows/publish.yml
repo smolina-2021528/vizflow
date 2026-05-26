@@ -41,12 +41,12 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-      - name: Publish @vizflow/core
-        run: pnpm --filter @vizflow/core publish --access public --no-git-checks
+      - name: Publish @smolina-dev/vizflow-core
+        run: pnpm --filter @smolina-dev/vizflow-core publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish @vizflow/cli
-        run: pnpm --filter @vizflow/cli publish --access public --no-git-checks
+      - name: Publish @smolina-dev/vizflow-cli
+        run: pnpm --filter @smolina-dev/vizflow-cli publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

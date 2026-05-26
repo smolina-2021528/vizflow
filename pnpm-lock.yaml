@@ -35,7 +35,7 @@ importers:
       '@inquirer/prompts':
         specifier: ^8.4.1
         version: 8.4.1(@types/node@20.19.39)
-      '@vizflow/core':
+      '@smolina-dev/vizflow-core':
         specifier: workspace:*
         version: link:../core
       inquirer:
@@ -70,7 +70,7 @@ importers:
 
   playground:
     dependencies:
-      '@vizflow/core':
+      '@smolina-dev/vizflow-core':
         specifier: workspace:*
         version: link:../packages/core
     devDependencies:

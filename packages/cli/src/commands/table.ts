@@ -4,10 +4,13 @@ import { select, input } from '@inquirer/prompts'
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 
-import { table, toHtmlFile } from '@vizflow/core'
-import type { TableConfig, ColumnDef, DataRow } from '@vizflow/core'
-import type { BuiltInThemeName } from '@vizflow/core'
-
+import { table, toHtmlFile } from '@smolina-dev/vizflow-core'
+import type {
+  ColumnDef,
+  DataRow,
+  TableConfig,
+} from '@smolina-dev/vizflow-core'
+import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
 
 const themeChoices: { name: string; value: BuiltInThemeName }[] = [
   { name: 'Light', value: 'light' },
@@ -15,6 +18,7 @@ const themeChoices: { name: string; value: BuiltInThemeName }[] = [
   { name: 'Hot', value: 'hot' },
   { name: 'Cold', value: 'cold' },
 ]
+
 // ─── Column builder ───────────────────────────────────────────────
 
 async function collectColumns(): Promise<ColumnDef[]> {
@@ -110,14 +114,13 @@ export async function run(): Promise<void> {
     message: 'Rows per page? (0 to disable pagination)',
     default: '10',
   })
-  
+
   const parsedPageSize = parseInt(pageSizeRaw, 10)
   const pageSize = Number.isNaN(parsedPageSize) ? 10 : parsedPageSize
 
-
   const theme = await select<BuiltInThemeName>({
-  message: 'Theme?',
-  choices: themeChoices,
+    message: 'Theme?',
+    choices: themeChoices,
   })
 
   const filename = await input({

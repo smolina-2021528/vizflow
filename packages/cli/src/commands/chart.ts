@@ -12,9 +12,13 @@ import {
   parseCsv,
   parseJson,
   toHtmlFile,
-} from '@vizflow/core'
-import type { ChartConfig, DataRow, VizFlowOutput } from '@vizflow/core'
-import type { BuiltInThemeName } from '@vizflow/core'
+} from '@smolina-dev/vizflow-core'
+import type {
+  ChartConfig,
+  DataRow,
+  VizFlowOutput,
+} from '@smolina-dev/vizflow-core'
+import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
 
 const themeChoices: { name: string; value: BuiltInThemeName }[] = [
   { name: 'Light', value: 'light' },
@@ -193,9 +197,9 @@ export async function run(): Promise<void> {
   }
 
   const theme = await select<BuiltInThemeName>({
-  message: 'Theme?',
-  choices: themeChoices,
-})
+    message: 'Theme?',
+    choices: themeChoices,
+  })
 
   const filename = await input({
     message: 'Output filename?',

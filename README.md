@@ -2,8 +2,8 @@
 
 > TypeScript library for generating charts, tables and visualizations — programmatic API, conversational CLI wizard, and CSS theming system.
 
-[![npm version](https://img.shields.io/npm/v/@vizflow/core)](https://www.npmjs.com/package/@vizflow/core)
-[![license](https://img.shields.io/npm/l/@vizflow/core)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@smolina-dev/vizflow-core)](https://www.npmjs.com/package/@smolina-dev/vizflow-core)
+[![license](https://img.shields.io/npm/l/@smolina-dev/vizflow-core)](LICENSE)
 
 ---
 
@@ -24,12 +24,12 @@
 
 ```bash
 # Core library
-npm install @vizflow/core
+npm install @smolina-dev/vizflow-core
 
 # CLI wizard
-npm install -g @vizflow/cli
+npm install -g @smolina-dev/vizflow-cli
 🚀 Mode 1 — Programmatic API
-import { barChart } from '@vizflow/core'
+import { barChart } from '@smolina-dev/vizflow-core'
 
 const output = barChart({
   type: 'bar',
@@ -54,9 +54,9 @@ import {
   pieChart,
   scatterChart,
   table,
-} from '@vizflow/core'
+} from '@smolina-dev/vizflow-core'
 Standalone HTML file
-import { barChart, toHtmlFile } from '@vizflow/core'
+import { barChart, toHtmlFile } from '@smolina-dev/vizflow-core'
 import { writeFileSync } from 'fs'
 
 const output = barChart({ ... })
@@ -67,13 +67,13 @@ const html = toHtmlFile(output, {
 
 writeFileSync('chart.html', html)
 Embeddable snippet
-import { barChart, toEmbedSnippet } from '@vizflow/core'
+import { barChart, toEmbedSnippet } from '@smolina-dev/vizflow-core'
 
 const output = barChart({ ... })
 const snippet = toEmbedSnippet(output)
 console.log(snippet) // paste into any HTML page
 🧙 Mode 2 — CLI Wizard
-npx @vizflow/cli
+npx @smolina-dev/vizflow-cli
 ? What do you want to generate?
   ❯ /chart   — Generate a chart from your data
     /table   — Generate a table from your data
@@ -107,7 +107,7 @@ dark	Dark interface for dashboards
 hot	Warm, energetic visual palette
 cold	Cool, calm blue visual palette
 Use a theme with toHtmlFile()
-import { barChart, toHtmlFile } from '@vizflow/core'
+import { barChart, toHtmlFile } from '@smolina-dev/vizflow-core'
 
 const output = barChart({ ... })
 
@@ -116,17 +116,17 @@ const html = toHtmlFile(output, {
   theme: 'hot',
 })
 Import built-in theme CSS
-import '@vizflow/core/themes/light.css'
-import '@vizflow/core/themes/dark.css'
-import '@vizflow/core/themes/hot.css'
-import '@vizflow/core/themes/cold.css'
+import '@smolina-dev/vizflow-core/themes/light.css'
+import '@smolina-dev/vizflow-core/themes/dark.css'
+import '@smolina-dev/vizflow-core/themes/hot.css'
+import '@smolina-dev/vizflow-core/themes/cold.css'
 
 You can also load the generated CSS directly in HTML:
 
-<link rel="stylesheet" href="node_modules/@vizflow/core/dist/themes/light.css" />
-<link rel="stylesheet" href="node_modules/@vizflow/core/dist/themes/dark.css" />
-<link rel="stylesheet" href="node_modules/@vizflow/core/dist/themes/hot.css" />
-<link rel="stylesheet" href="node_modules/@vizflow/core/dist/themes/cold.css" />
+<link rel="stylesheet" href="node_modules/@smolina-dev/vizflow-core/dist/themes/light.css" />
+<link rel="stylesheet" href="node_modules/@smolina-dev/vizflow-core/dist/themes/dark.css" />
+<link rel="stylesheet" href="node_modules/@smolina-dev/vizflow-core/dist/themes/hot.css" />
+<link rel="stylesheet" href="node_modules/@smolina-dev/vizflow-core/dist/themes/cold.css" />
 Custom theme
 :root {
   --vf-primary: #10b981;
@@ -153,7 +153,7 @@ Variable	Description	Default
 --vf-chart-5	Fifth chart series color	Theme value
 📊 Chart Options
 Line Chart
-import { lineChart } from '@vizflow/core'
+import { lineChart } from '@smolina-dev/vizflow-core'
 
 lineChart(config, {
   fill: true, // fill area below line
@@ -161,7 +161,7 @@ lineChart(config, {
   tension: 0.3, // line smoothness (0-1)
 })
 Pie Chart
-import { pieChart } from '@vizflow/core'
+import { pieChart } from '@smolina-dev/vizflow-core'
 
 pieChart(config, {
   donut: true, // render as donut chart
@@ -169,7 +169,7 @@ pieChart(config, {
   showPercentages: true, // show percentages in the tooltip
 })
 Scatter Chart
-import { scatterChart } from '@vizflow/core'
+import { scatterChart } from '@smolina-dev/vizflow-core'
 
 scatterChart(config, {
   pointRadius: 6,
@@ -177,7 +177,7 @@ scatterChart(config, {
   yAxisLabel: 'Weight (kg)',
 })
 📋 Table Options
-import { table } from '@vizflow/core'
+import { table } from '@smolina-dev/vizflow-core'
 
 table(
   {
@@ -234,10 +234,10 @@ pnpm build
 pnpm test
 
 # Build only core
-pnpm --filter @vizflow/core build
+pnpm --filter @smolina-dev/vizflow-core build
 
 # Run CLI in development
-pnpm --filter @vizflow/cli dev
+pnpm --filter @smolina-dev/vizflow-cli dev
 📄 License
 
 MIT © Alejandro Molina

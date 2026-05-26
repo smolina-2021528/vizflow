@@ -4,9 +4,9 @@
   "private": true,
   "description": "VizFlow.js monorepo — charts, tables and CLI wizard",
   "scripts": {
-    "dev": "pnpm --filter @vizflow/core dev",
-    "build": "pnpm --filter @vizflow/core build && pnpm --filter @vizflow/cli build",
-    "test": "pnpm --filter @vizflow/core test && pnpm --filter @vizflow/cli test",
+    "dev": "pnpm --filter @smolina-dev/vizflow-core dev",
+    "build": "pnpm --filter @smolina-dev/vizflow-core build && pnpm --filter @smolina-dev/vizflow-cli build",
+    "test": "pnpm --filter @smolina-dev/vizflow-core test && pnpm --filter @smolina-dev/vizflow-cli test",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
