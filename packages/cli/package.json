@@ -39,8 +39,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^8.4.1",
-    "@smolina-dev/vizflow-core": "workspace:*",
-    "inquirer": "^10.0.0"
+    "@smolina-dev/vizflow-core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
