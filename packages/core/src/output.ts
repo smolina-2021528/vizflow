@@ -3,6 +3,11 @@ import { buildThemeStyle } from './themes/index.js'
 import type { BuiltInThemeName } from './themes/index.js'
 import { escapeHtml } from './utils/escape.js'
 
+// ─── Constants ────────────────────────────────────────────────────
+
+const CHART_JS_CDN_URL =
+  'https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js'
+
 // ─── Standalone HTML output options ──────────────────────────────
 
 export interface StandaloneOptions {
@@ -33,7 +38,7 @@ export function toHtmlFile(
   const includeChartJs = options.includeChartJs ?? true
 
   const chartJsScript = includeChartJs
-    ? `<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>`
+    ? `<script src="${CHART_JS_CDN_URL}"><\/script>`
     : ''
 
   return `<!DOCTYPE html>
@@ -86,7 +91,7 @@ export function toEmbedSnippet(
     : ''
 
   const chartJsScript = includeChartJs
-    ? `<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>\n`
+    ? `<script src="${CHART_JS_CDN_URL}"><\/script>\n`
     : ''
 
   return `${instructions}${chartJsScript}${output.render()}`
