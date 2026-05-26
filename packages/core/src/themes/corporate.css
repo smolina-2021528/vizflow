@@ -1,0 +1,26 @@
+/* VizFlow.js — Corporate theme
+   Import this file once to apply a clean business-oriented theme to all VizFlow components */
+
+:root {
+  --vf-primary: #2563eb;
+  --vf-on-primary: #ffffff;
+
+  --vf-background: #f8fafc;
+  --vf-surface: #ffffff;
+
+  --vf-text: #0f172a;
+  --vf-text-muted: #64748b;
+
+  --vf-border: #cbd5e1;
+  --vf-row-alt: #f1f5f9;
+  --vf-row-hover: #dbeafe;
+
+  --vf-radius: 10px;
+  --vf-font: 'Inter', system-ui, sans-serif;
+
+  --vf-chart-1: #2563eb;
+  --vf-chart-2: #64748b;
+  --vf-chart-3: #0ea5e9;
+  --vf-chart-4: #475569;
+  --vf-chart-5: #1d4ed8;
+}

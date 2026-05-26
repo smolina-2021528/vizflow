@@ -1,0 +1,26 @@
+/* VizFlow.js — Midnight theme
+   Import this file once to apply a premium dark dashboard theme to all VizFlow components */
+
+:root {
+  --vf-primary: #8b5cf6;
+  --vf-on-primary: #ffffff;
+
+  --vf-background: #020617;
+  --vf-surface: #0f172a;
+
+  --vf-text: #f8fafc;
+  --vf-text-muted: #94a3b8;
+
+  --vf-border: #334155;
+  --vf-row-alt: #111827;
+  --vf-row-hover: #312e81;
+
+  --vf-radius: 12px;
+  --vf-font: 'Inter', system-ui, sans-serif;
+
+  --vf-chart-1: #8b5cf6;
+  --vf-chart-2: #06b6d4;
+  --vf-chart-3: #f472b6;
+  --vf-chart-4: #facc15;
+  --vf-chart-5: #22c55e;
+}

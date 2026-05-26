@@ -1,0 +1,26 @@
+/* VizFlow.js — Emerald theme
+   Import this file once to apply a fresh growth-oriented theme to all VizFlow components */
+
+:root {
+  --vf-primary: #10b981;
+  --vf-on-primary: #ffffff;
+
+  --vf-background: #ecfdf5;
+  --vf-surface: #ffffff;
+
+  --vf-text: #064e3b;
+  --vf-text-muted: #047857;
+
+  --vf-border: #a7f3d0;
+  --vf-row-alt: #d1fae5;
+  --vf-row-hover: #a7f3d0;
+
+  --vf-radius: 10px;
+  --vf-font: 'Inter', system-ui, sans-serif;
+
+  --vf-chart-1: #10b981;
+  --vf-chart-2: #34d399;
+  --vf-chart-3: #059669;
+  --vf-chart-4: #14b8a6;
+  --vf-chart-5: #22c55e;
+}

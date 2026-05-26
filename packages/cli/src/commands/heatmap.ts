@@ -20,6 +20,10 @@ const themeChoices: { name: string; value: BuiltInThemeName }[] = [
   { name: 'Dark', value: 'dark' },
   { name: 'Hot', value: 'hot' },
   { name: 'Cold', value: 'cold' },
+  { name: 'Corporate', value: 'corporate' },
+  { name: 'Emerald', value: 'emerald' },
+  { name: 'Midnight', value: 'midnight' },
+  { name: 'Sunset', value: 'sunset' },
 ]
 
 // ─── HTML escaping ────────────────────────────────────────────────
