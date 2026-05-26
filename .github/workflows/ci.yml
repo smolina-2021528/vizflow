@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build and test
+    name: Build, test and package
     runs-on: ubuntu-latest
 
     steps:
@@ -41,3 +41,23 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+
+      - name: Pack packages
+        run: |
+          mkdir -p .artifacts
+          pnpm --filter @smolina-dev/vizflow-core pack --pack-destination .artifacts
+          pnpm --filter @smolina-dev/vizflow-cli pack --pack-destination .artifacts
+
+      - name: Verify packed package metadata
+        run: |
+          core_package="$(ls .artifacts/*vizflow-core*.tgz | head -n 1)"
+          cli_package="$(ls .artifacts/*vizflow-cli*.tgz | head -n 1)"
+
+          test -n "$core_package"
+          test -n "$cli_package"
+
+          tar -xOf "$core_package" package/package.json | grep '"name": "@smolina-dev/vizflow-core"'
+          tar -xOf "$cli_package" package/package.json | grep '"name": "@smolina-dev/vizflow-cli"'
+
+          tar -xOf "$core_package" package/package.json | grep '"version": "'
+          tar -xOf "$cli_package" package/package.json | grep '"version": "'
