@@ -21,6 +21,17 @@ const themeChoices: { name: string; value: BuiltInThemeName }[] = [
   { name: 'Cold', value: 'cold' },
 ]
 
+// ─── HTML escaping ────────────────────────────────────────────────
+
+function escapeHtml(value: unknown): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 // ─── HTML builder ─────────────────────────────────────────────────
 
 function buildHeatmapHtml(data: HeatmapData, title: string): string {
@@ -35,7 +46,9 @@ function buildHeatmapHtml(data: HeatmapData, title: string): string {
     return `hsl(${hue}, 70%, ${lightness}%)`
   }
 
-  const headerCells = data.colLabels.map(col => `<th>${col}</th>`).join('')
+  const headerCells = data.colLabels
+    .map(col => `<th>${escapeHtml(col)}</th>`)
+    .join('')
 
   const bodyRows = data.rowLabels
     .map((rowLabel, rIdx) => {
@@ -43,16 +56,17 @@ function buildHeatmapHtml(data: HeatmapData, title: string): string {
         .map((_, cIdx) => {
           const val = data.values[rIdx]?.[cIdx] ?? 0
           const bg = toColor(val)
-          return `<td style="background:${bg}">${val}</td>`
+          return `<td style="background:${bg}">${escapeHtml(val)}</td>`
         })
         .join('')
-      return `<tr><th>${rowLabel}</th>${cells}</tr>`
+
+      return `<tr><th>${escapeHtml(rowLabel)}</th>${cells}</tr>`
     })
     .join('\n      ')
 
   return `
 <div class="vf-heatmap-wrapper">
-  <h2 class="vf-heatmap-title">${title}</h2>
+  <h2 class="vf-heatmap-title">${escapeHtml(title)}</h2>
   <div style="overflow-x:auto">
     <table class="vf-heatmap">
       <thead>
@@ -135,6 +149,7 @@ async function collectHeatmapData(): Promise<HeatmapData> {
     message: 'Column labels (comma-separated):',
     default: 'Mon,Tue,Wed,Thu,Fri',
   })
+
   const colLabels = colRaw
     .split(',')
     .map(s => s.trim())
