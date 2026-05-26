@@ -1,4 +1,4 @@
-import { ChartConfig, VizFlowOutput } from '../types/index.js'
+import type { ChartConfig, VizFlowOutput } from '../types/index.js'
 import {
   resolveData,
   extractLabels,
@@ -8,6 +8,8 @@ import {
   buildChartColorScript,
   buildChartRuntimeGuard,
   buildChartShellHtml,
+  buildValueFormatterScript,
+  resolveChartFormatOptions,
   sanitizeBoolean,
   sanitizeFiniteNumber,
 } from './shared.js'
@@ -31,8 +33,8 @@ function buildHtml(
   labels: string[],
   values: number[],
   title: string,
-  options: LineChartOptions,
-  subtitle?: string
+  config: ChartConfig,
+  options: LineChartOptions
 ): string {
   const fill = sanitizeBoolean(options.fill, false)
   const showPoints = sanitizeBoolean(options.showPoints, true)
@@ -40,14 +42,18 @@ function buildHtml(
     min: 0,
     max: 1,
   })
+  const format = resolveChartFormatOptions(config.format)
 
   return `
-${buildChartShellHtml(id, title, subtitle)}
+${buildChartShellHtml(id, title, config.subtitle)}
 <script>
   (function () {
     ${buildChartRuntimeGuard()}
     ${buildChartColorScript()}
+    ${buildValueFormatterScript()}
 
+    const vfYFormat = ${toJsonScriptValue(format.y)}
+    const vfTooltipFormat = ${toJsonScriptValue(format.tooltip)}
     const primaryColor = vfChartColors[0]
     const ctx = document.getElementById('vf-canvas-${id}')
 
@@ -87,7 +93,14 @@ ${buildChartShellHtml(id, title, subtitle)}
             borderColor: vfBorderColor,
             borderWidth: 1,
             padding: 12,
-            displayColors: false
+            displayColors: false,
+            callbacks: {
+              label: function (context) {
+                const label = context.dataset.label || ''
+                const value = context.parsed.y
+                return label + ': ' + vfFormatValue(value, vfTooltipFormat)
+              }
+            }
           }
         },
         scales: {
@@ -99,7 +112,12 @@ ${buildChartShellHtml(id, title, subtitle)}
           y: {
             beginAtZero: true,
             border: { display: false },
-            ticks: { color: vfMutedTextColor },
+            ticks: {
+              color: vfMutedTextColor,
+              callback: function (value) {
+                return vfFormatValue(value, vfYFormat)
+              }
+            },
             grid: { color: vfWithAlpha(vfBorderColor, 0.65) }
           }
         }
@@ -133,7 +151,7 @@ export function lineChart(
   const labels = extractLabels(rows, config.xKey)
   const values = extractValues(rows, config.yKey)
 
-  const html = buildHtml(id, labels, values, title, options, config.subtitle)
+  const html = buildHtml(id, labels, values, title, config, options)
   const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {

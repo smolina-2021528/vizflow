@@ -76,6 +76,81 @@ describe('barChart', () => {
     expect(output.html).toContain('Chart.js is required to render charts')
   })
 
+  it('supports currency formatting for y axis and tooltips', () => {
+    const output = barChart({
+      ...baseConfig,
+      format: {
+        y: {
+          type: 'currency',
+          currency: 'GTQ',
+          locale: 'es-GT',
+          maximumFractionDigits: 0,
+        },
+      },
+    })
+
+    expect(output.html).toContain('"type":"currency"')
+    expect(output.html).toContain('"currency":"GTQ"')
+    expect(output.html).toContain('"locale":"es-GT"')
+    expect(output.html).toContain('vfFormatValue(value, vfYFormat)')
+    expect(output.html).toContain('vfFormatValue(value, vfTooltipFormat)')
+  })
+
+  it('supports compact number formatting through the default value formatter', () => {
+    const output = barChart({
+      ...baseConfig,
+      format: {
+        value: {
+          type: 'compact',
+          locale: 'en-US',
+          maximumFractionDigits: 1,
+        },
+      },
+    })
+
+    expect(output.html).toContain('"type":"compact"')
+    expect(output.html).toContain('"maximumFractionDigits":1')
+  })
+
+  it('sanitizes invalid formatter options before embedding them', () => {
+    const output = barChart({
+      ...baseConfig,
+      format: {
+        y: {
+          type: 'invalid' as 'number',
+          locale: '',
+          currency: '',
+          maximumFractionDigits: 999,
+          minimumFractionDigits: -5,
+          prefix: 'Q',
+          suffix: ' units',
+        },
+      },
+    })
+
+    expect(output.html).toContain('"type":"number"')
+    expect(output.html).toContain('"locale":"en-US"')
+    expect(output.html).toContain('"currency":"USD"')
+    expect(output.html).toContain('"maximumFractionDigits":20')
+    expect(output.html).toContain('"minimumFractionDigits":0')
+    expect(output.html).toContain('"prefix":"Q"')
+    expect(output.html).toContain('"suffix":" units"')
+  })
+
+  it('escapes dangerous script sequences inside formatter options', () => {
+    const output = barChart({
+      ...baseConfig,
+      format: {
+        y: {
+          prefix: '</script><script>alert("x")</script>',
+        },
+      },
+    })
+
+    expect(output.html).not.toContain('</script><script>alert')
+    expect(output.html).toContain('\\u003c/script\\u003e')
+  })
+
   it('escapes dangerous script sequences inside chart titles', () => {
     const output = barChart({
       ...baseConfig,
@@ -150,6 +225,22 @@ describe('lineChart', () => {
     expect(output.html).toContain('canvas')
   })
 
+  it('supports percent formatting for y axis and tooltips', () => {
+    const output = lineChart({
+      ...baseConfig,
+      format: {
+        y: {
+          type: 'percent',
+          maximumFractionDigits: 1,
+        },
+      },
+    })
+
+    expect(output.html).toContain('"type":"percent"')
+    expect(output.html).toContain('vfFormatValue(value, vfYFormat)')
+    expect(output.html).toContain('vfFormatValue(value, vfTooltipFormat)')
+  })
+
   it('rejects non-finite line values', () => {
     expect(() =>
       lineChart({
@@ -197,6 +288,23 @@ describe('pieChart', () => {
     const output = pieChart(baseConfig)
 
     expect(output.html).toContain('canvas')
+  })
+
+  it('uses formatter output inside tooltip labels', () => {
+    const output = pieChart({
+      ...baseConfig,
+      format: {
+        tooltip: {
+          type: 'currency',
+          currency: 'USD',
+          maximumFractionDigits: 0,
+        },
+      },
+    })
+
+    expect(output.html).toContain('"type":"currency"')
+    expect(output.html).toContain('formattedValue')
+    expect(output.html).toContain('vfFormatValue(value, vfTooltipFormat)')
   })
 
   it('can show percentages in tooltip labels', () => {
@@ -256,6 +364,28 @@ describe('scatterChart', () => {
     const output = scatterChart(scatterConfig)
 
     expect(output.html).toContain('canvas')
+  })
+
+  it('supports independent x and y formatters', () => {
+    const output = scatterChart({
+      ...scatterConfig,
+      format: {
+        x: {
+          type: 'number',
+          maximumFractionDigits: 0,
+        },
+        y: {
+          type: 'currency',
+          currency: 'GTQ',
+          maximumFractionDigits: 0,
+        },
+      },
+    })
+
+    expect(output.html).toContain('vfFormatValue(value, vfXFormat)')
+    expect(output.html).toContain('vfFormatValue(value, vfYFormat)')
+    expect(output.html).toContain('vfFormatValue(y, vfTooltipFormat)')
+    expect(output.html).toContain('"currency":"GTQ"')
   })
 
   it('rejects non-finite x values', () => {

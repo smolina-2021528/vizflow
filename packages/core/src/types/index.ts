@@ -34,6 +34,62 @@ export type Theme =
   | { name: Exclude<ThemeName, 'custom'> }
   | { name: 'custom'; values: CustomTheme }
 
+// ─── Value formatting ─────────────────────────────────────────────
+
+export type ValueFormatType = 'number' | 'currency' | 'percent' | 'compact'
+
+export interface ValueFormatOptions {
+  /**
+   * How the value should be rendered.
+   * - number: regular localized number
+   * - currency: localized currency
+   * - percent: localized percentage, useful when values are decimals like 0.25
+   * - compact: short notation like 1.2K or 3.4M
+   */
+  type?: ValueFormatType
+  /**
+   * Locale used by Intl.NumberFormat.
+   * Examples: 'en-US', 'es-GT', 'es-MX'
+   */
+  locale?: string
+  /**
+   * Currency code used when type is 'currency'.
+   * Examples: 'USD', 'GTQ', 'MXN'
+   */
+  currency?: string
+  minimumFractionDigits?: number
+  maximumFractionDigits?: number
+  /**
+   * Text added before the formatted value.
+   * Useful for custom prefixes like 'Q'.
+   */
+  prefix?: string
+  /**
+   * Text added after the formatted value.
+   * Useful for units like ' units' or ' kg'.
+   */
+  suffix?: string
+}
+
+export interface ChartFormatOptions {
+  /**
+   * Default formatter used by chart values when a specific formatter is not provided.
+   */
+  value?: ValueFormatOptions
+  /**
+   * Formatter for X axis values. Mainly useful for scatter charts.
+   */
+  x?: ValueFormatOptions
+  /**
+   * Formatter for Y axis values and chart scales.
+   */
+  y?: ValueFormatOptions
+  /**
+   * Formatter used inside tooltips.
+   */
+  tooltip?: ValueFormatOptions
+}
+
 // ─── Chart types ──────────────────────────────────────────────────
 
 export type ChartType = 'bar' | 'line' | 'pie' | 'scatter'
@@ -71,6 +127,7 @@ export interface ChartConfig {
   width?: number
   height?: number
   appearance?: ChartAppearance
+  format?: ChartFormatOptions
 }
 
 // ─── Table types ──────────────────────────────────────────────────

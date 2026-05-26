@@ -1,4 +1,4 @@
-import { ChartConfig, VizFlowOutput } from '../types/index.js'
+import type { ChartConfig, VizFlowOutput } from '../types/index.js'
 import {
   resolveData,
   extractLabels,
@@ -8,6 +8,8 @@ import {
   buildChartColorScript,
   buildChartRuntimeGuard,
   buildChartShellHtml,
+  buildValueFormatterScript,
+  resolveChartFormatOptions,
   sanitizeBoolean,
   sanitizeFiniteNumber,
 } from './shared.js'
@@ -31,8 +33,8 @@ function buildHtml(
   labels: string[],
   values: number[],
   title: string,
-  options: PieChartOptions,
-  subtitle?: string
+  config: ChartConfig,
+  options: PieChartOptions
 ): string {
   const donut = sanitizeBoolean(options.donut, false)
   const cutoutPercent = sanitizeFiniteNumber(options.cutoutPercent, 60, {
@@ -41,14 +43,17 @@ function buildHtml(
   })
   const cutout = donut ? `${cutoutPercent}%` : '0%'
   const showPercentages = sanitizeBoolean(options.showPercentages, false)
+  const format = resolveChartFormatOptions(config.format)
 
   return `
-${buildChartShellHtml(id, title, subtitle)}
+${buildChartShellHtml(id, title, config.subtitle)}
 <script>
   (function () {
     ${buildChartRuntimeGuard()}
     ${buildChartColorScript()}
+    ${buildValueFormatterScript()}
 
+    const vfTooltipFormat = ${toJsonScriptValue(format.tooltip)}
     const ctx = document.getElementById('vf-canvas-${id}')
     const pieValues = ${toJsonScriptValue(values)}
 
@@ -95,9 +100,10 @@ ${buildChartShellHtml(id, title, subtitle)}
               label: function (context) {
                 const label = context.label || ''
                 const value = Number(context.parsed) || 0
+                const formattedValue = vfFormatValue(value, vfTooltipFormat)
 
                 if (!${showPercentages}) {
-                  return label + ': ' + value
+                  return label + ': ' + formattedValue
                 }
 
                 const data = context.dataset.data || []
@@ -106,7 +112,7 @@ ${buildChartShellHtml(id, title, subtitle)}
                 }, 0)
                 const percentage = total === 0 ? 0 : (value / total) * 100
 
-                return label + ': ' + value + ' (' + percentage.toFixed(1) + '%)'
+                return label + ': ' + formattedValue + ' (' + percentage.toFixed(1) + '%)'
               }
             }
           }
@@ -141,7 +147,7 @@ export function pieChart(
   const labels = extractLabels(rows, config.xKey)
   const values = extractValues(rows, config.yKey)
 
-  const html = buildHtml(id, labels, values, title, options, config.subtitle)
+  const html = buildHtml(id, labels, values, title, config, options)
   const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {

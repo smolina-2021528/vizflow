@@ -1,4 +1,4 @@
-import { ChartConfig, VizFlowOutput } from '../types/index.js'
+import type { ChartConfig, VizFlowOutput } from '../types/index.js'
 import {
   resolveData,
   extractPoints,
@@ -7,6 +7,8 @@ import {
   buildChartColorScript,
   buildChartRuntimeGuard,
   buildChartShellHtml,
+  buildValueFormatterScript,
+  resolveChartFormatOptions,
   sanitizeFiniteNumber,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
@@ -28,25 +30,28 @@ function buildHtml(
   id: string,
   points: { x: number; y: number }[],
   title: string,
-  options: ScatterChartOptions,
-  xKey: string,
-  yKey: string,
-  subtitle?: string
+  config: ChartConfig,
+  options: ScatterChartOptions
 ): string {
   const pointRadius = sanitizeFiniteNumber(options.pointRadius, 5, {
     min: 0,
     max: 50,
   })
-  const xAxisLabel = options.xAxisLabel ?? xKey
-  const yAxisLabel = options.yAxisLabel ?? yKey
+  const xAxisLabel = options.xAxisLabel ?? config.xKey
+  const yAxisLabel = options.yAxisLabel ?? config.yKey
+  const format = resolveChartFormatOptions(config.format)
 
   return `
-${buildChartShellHtml(id, title, subtitle)}
+${buildChartShellHtml(id, title, config.subtitle)}
 <script>
   (function () {
     ${buildChartRuntimeGuard()}
     ${buildChartColorScript()}
+    ${buildValueFormatterScript()}
 
+    const vfXFormat = ${toJsonScriptValue(format.x)}
+    const vfYFormat = ${toJsonScriptValue(format.y)}
+    const vfTooltipFormat = ${toJsonScriptValue(format.tooltip)}
     const ctx = document.getElementById('vf-canvas-${id}')
 
     new Chart(ctx, {
@@ -74,7 +79,14 @@ ${buildChartShellHtml(id, title, subtitle)}
             borderColor: vfBorderColor,
             borderWidth: 1,
             padding: 12,
-            displayColors: false
+            displayColors: false,
+            callbacks: {
+              label: function (context) {
+                const x = context.parsed.x
+                const y = context.parsed.y
+                return ${toJsonScriptValue(xAxisLabel)} + ': ' + vfFormatValue(x, vfXFormat) + ', ' + ${toJsonScriptValue(yAxisLabel)} + ': ' + vfFormatValue(y, vfTooltipFormat)
+              }
+            }
           }
         },
         scales: {
@@ -86,7 +98,12 @@ ${buildChartShellHtml(id, title, subtitle)}
             },
             grid: { color: vfWithAlpha(vfBorderColor, 0.65) },
             border: { display: false },
-            ticks: { color: vfMutedTextColor }
+            ticks: {
+              color: vfMutedTextColor,
+              callback: function (value) {
+                return vfFormatValue(value, vfXFormat)
+              }
+            }
           },
           y: {
             title: {
@@ -97,7 +114,12 @@ ${buildChartShellHtml(id, title, subtitle)}
             beginAtZero: false,
             grid: { color: vfWithAlpha(vfBorderColor, 0.65) },
             border: { display: false },
-            ticks: { color: vfMutedTextColor }
+            ticks: {
+              color: vfMutedTextColor,
+              callback: function (value) {
+                return vfFormatValue(value, vfYFormat)
+              }
+            }
           }
         }
       }
@@ -129,15 +151,7 @@ export function scatterChart(
   const rows = resolveData(config)
   const points = extractPoints(rows, config.xKey, config.yKey)
 
-  const html = buildHtml(
-    id,
-    points,
-    title,
-    options,
-    config.xKey,
-    config.yKey,
-    config.subtitle
-  )
+  const html = buildHtml(id, points, title, config, options)
   const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {

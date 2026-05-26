@@ -1,4 +1,11 @@
-import { ChartAppearance, ChartConfig, DataRow } from '../types/index.js'
+import type {
+  ChartAppearance,
+  ChartConfig,
+  ChartFormatOptions,
+  DataRow,
+  ValueFormatOptions,
+  ValueFormatType,
+} from '../types/index.js'
 import { escapeHtml } from '../utils/escape.js'
 
 // ─── Shared utilities for all chart generators ────────────────────
@@ -12,6 +19,22 @@ interface ResolvedChartAppearance {
   card: boolean
   shadow: boolean
   radius: string
+}
+
+export interface ResolvedValueFormatOptions {
+  type: ValueFormatType
+  locale: string
+  currency: string
+  minimumFractionDigits: number
+  maximumFractionDigits: number
+  prefix: string
+  suffix: string
+}
+
+export interface ResolvedChartFormatOptions {
+  x: ResolvedValueFormatOptions
+  y: ResolvedValueFormatOptions
+  tooltip: ResolvedValueFormatOptions
 }
 
 /** Resolves the DataSource from any config that contains a DataSource into a DataRow array */
@@ -86,6 +109,103 @@ export function sanitizeBoolean(value: unknown, fallback: boolean): boolean {
   }
 
   return fallback
+}
+
+function sanitizeStringOption(
+  value: unknown,
+  fallback: string,
+  maxLength: number
+): string {
+  if (typeof value !== 'string') {
+    return fallback
+  }
+
+  const normalized = value.trim()
+
+  if (normalized.length === 0) {
+    return fallback
+  }
+
+  return normalized.slice(0, maxLength)
+}
+
+function sanitizeAffix(value: unknown): string {
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  return value.slice(0, 32)
+}
+
+function resolveDefaultMaximumFractionDigits(type: ValueFormatType): number {
+  switch (type) {
+    case 'currency':
+      return 2
+    case 'percent':
+      return 1
+    case 'compact':
+      return 1
+    case 'number':
+      return 2
+  }
+}
+
+function resolveValueFormatType(value: unknown): ValueFormatType {
+  if (
+    value === 'number' ||
+    value === 'currency' ||
+    value === 'percent' ||
+    value === 'compact'
+  ) {
+    return value
+  }
+
+  return 'number'
+}
+
+/** Resolves and sanitizes a value formatter before embedding it in generated JS. */
+export function resolveValueFormatOptions(
+  format: ValueFormatOptions | undefined
+): ResolvedValueFormatOptions {
+  const type = resolveValueFormatType(format?.type)
+  const defaultMaximumFractionDigits = resolveDefaultMaximumFractionDigits(type)
+
+  const maximumFractionDigits = sanitizeInteger(
+    format?.maximumFractionDigits,
+    defaultMaximumFractionDigits,
+    { min: 0, max: 20 }
+  )
+
+  const minimumFractionDigits = sanitizeInteger(
+    format?.minimumFractionDigits,
+    0,
+    { min: 0, max: maximumFractionDigits }
+  )
+
+  return {
+    type,
+    locale: sanitizeStringOption(format?.locale, 'en-US', 32),
+    currency: sanitizeStringOption(format?.currency, 'USD', 8).toUpperCase(),
+    minimumFractionDigits,
+    maximumFractionDigits,
+    prefix: sanitizeAffix(format?.prefix),
+    suffix: sanitizeAffix(format?.suffix),
+  }
+}
+
+/** Resolves chart-level formatting with sensible fallbacks. */
+export function resolveChartFormatOptions(
+  format: ChartFormatOptions | undefined
+): ResolvedChartFormatOptions {
+  const defaultValueFormat = format?.value
+
+  return {
+    x: resolveValueFormatOptions(format?.x ?? defaultValueFormat),
+    y: resolveValueFormatOptions(format?.y ?? defaultValueFormat),
+    tooltip: resolveValueFormatOptions(
+      format?.tooltip ?? format?.y ?? defaultValueFormat
+    ),
+  }
 }
 
 /** Extracts an array of numeric Y axis values from the resolved rows */
@@ -169,7 +289,8 @@ function resolveChartAppearance(
   }
 
   const rounded = appearance?.rounded
-  const radius = rounded && rounded in radiusByName ? radiusByName[rounded] : '14px'
+  const radius =
+    rounded && rounded in radiusByName ? radiusByName[rounded] : '14px'
 
   return {
     card,
@@ -331,5 +452,58 @@ export function buildChartColorScript(): string {
     const vfMutedTextColor = vfColor('--vf-text-muted', '#6b7280')
     const vfBorderColor = vfColor('--vf-border', '#e5e7eb')
     const vfSurfaceColor = vfColor('--vf-surface', '#ffffff')
+  `.trimEnd()
+}
+
+/** Shared JavaScript used by charts to format values in ticks and tooltips. */
+export function buildValueFormatterScript(): string {
+  return `
+    function vfFormatValue(value, options) {
+      const numericValue = Number(value)
+
+      if (!Number.isFinite(numericValue)) {
+        return String(value)
+      }
+
+      const config = options || {}
+      const type = config.type || 'number'
+      const locale = config.locale || 'en-US'
+      const currency = config.currency || 'USD'
+      const prefix = typeof config.prefix === 'string' ? config.prefix : ''
+      const suffix = typeof config.suffix === 'string' ? config.suffix : ''
+
+      const minimumFractionDigits = Number.isFinite(Number(config.minimumFractionDigits))
+        ? Number(config.minimumFractionDigits)
+        : 0
+
+      const maximumFractionDigits = Number.isFinite(Number(config.maximumFractionDigits))
+        ? Number(config.maximumFractionDigits)
+        : 2
+
+      const formatterOptions = {
+        minimumFractionDigits: minimumFractionDigits,
+        maximumFractionDigits: maximumFractionDigits
+      }
+
+      if (type === 'currency') {
+        formatterOptions.style = 'currency'
+        formatterOptions.currency = currency
+      }
+
+      if (type === 'percent') {
+        formatterOptions.style = 'percent'
+      }
+
+      if (type === 'compact') {
+        formatterOptions.notation = 'compact'
+        formatterOptions.compactDisplay = 'short'
+      }
+
+      try {
+        return prefix + new Intl.NumberFormat(locale, formatterOptions).format(numericValue) + suffix
+      } catch {
+        return prefix + String(numericValue) + suffix
+      }
+    }
   `.trimEnd()
 }
