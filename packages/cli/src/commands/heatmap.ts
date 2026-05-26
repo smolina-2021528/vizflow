@@ -5,6 +5,7 @@ import { buildThemeStyle } from '@smolina-dev/vizflow-core'
 import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
+import { parseFiniteNumberOrDefault } from '../utils/number.js'
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -170,8 +171,7 @@ async function collectHeatmapData(): Promise<HeatmapData> {
 
     const rowValues = valRaw
       .split(',')
-      .map(s => parseFloat(s.trim()))
-      .map(n => (isNaN(n) ? 0 : n))
+      .map(s => parseFiniteNumberOrDefault(s, 0))
 
     while (rowValues.length < colLabels.length) rowValues.push(0)
     rowValues.length = colLabels.length

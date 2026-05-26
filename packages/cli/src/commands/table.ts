@@ -11,6 +11,10 @@ import type {
   TableConfig,
 } from '@smolina-dev/vizflow-core'
 import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
+import {
+  parseNonNegativeIntegerOrDefault,
+  parseTableCell,
+} from '../utils/number.js'
 
 const themeChoices: { name: string; value: BuiltInThemeName }[] = [
   { name: 'Light', value: 'light' },
@@ -27,7 +31,7 @@ async function collectColumns(): Promise<ColumnDef[]> {
 
   while (true) {
     const key = await input({ message: '  Column key:' })
-    if (key.toLowerCase() === 'done') break
+    if (key.trim().toLowerCase() === 'done') break
 
     const label = await input({
       message: '  Column label:',
@@ -59,8 +63,7 @@ async function collectRows(columns: ColumnDef[]): Promise<DataRow[]> {
         break
       }
 
-      const num = parseFloat(raw)
-      row[col.key] = isNaN(num) ? raw : num
+      row[col.key] = parseTableCell(raw)
       isFirst = false
     }
 
@@ -115,8 +118,7 @@ export async function run(): Promise<void> {
     default: '10',
   })
 
-  const parsedPageSize = parseInt(pageSizeRaw, 10)
-  const pageSize = Number.isNaN(parsedPageSize) ? 10 : parsedPageSize
+  const pageSize = parseNonNegativeIntegerOrDefault(pageSizeRaw, 10)
 
   const theme = await select<BuiltInThemeName>({
     message: 'Theme?',

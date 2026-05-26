@@ -19,6 +19,7 @@ import type {
   VizFlowOutput,
 } from '@smolina-dev/vizflow-core'
 import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
+import { parseFiniteNumber } from '../utils/number.js'
 
 const themeChoices: { name: string; value: BuiltInThemeName }[] = [
   { name: 'Light', value: 'light' },
@@ -42,22 +43,24 @@ async function collectManualRows(
 
   while (true) {
     const rawX = await input({ message: `  ${xKey}:` })
-    if (rawX.toLowerCase() === 'done') break
+    if (rawX.trim().toLowerCase() === 'done') break
 
     const rawY = await input({ message: `  ${yKey}:` })
-    const valueY = parseFloat(rawY)
+    const valueY = parseFiniteNumber(rawY)
 
-    if (isNaN(valueY)) {
-      console.log('  ⚠ Not a number — skipping row.')
+    if (valueY === null) {
+      console.log('  ⚠ Y must be a finite number — skipping row.')
       continue
     }
 
     if (numericX) {
-      const valueX = parseFloat(rawX)
-      if (isNaN(valueX)) {
-        console.log('  ⚠ X is not a number — skipping row.')
+      const valueX = parseFiniteNumber(rawX)
+
+      if (valueX === null) {
+        console.log('  ⚠ X must be a finite number — skipping row.')
         continue
       }
+
       rows.push({ [xKey]: valueX, [yKey]: valueY })
     } else {
       rows.push({ [xKey]: rawX, [yKey]: valueY })
