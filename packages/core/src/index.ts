@@ -24,11 +24,23 @@ export { parseJson, JsonParseError } from './parsers/index.js'
 export { parseCsv, CsvParseError } from './parsers/index.js'
 
 // Charts
-export { barChart, lineChart, pieChart, scatterChart } from './charts/index.js'
+export {
+  barChart,
+  lineChart,
+  pieChart,
+  scatterChart,
+  areaChart,
+  horizontalBarChart,
+  doughnutChart,
+} from './charts/index.js'
+
 export type {
   LineChartOptions,
   PieChartOptions,
   ScatterChartOptions,
+  AreaChartOptions,
+  HorizontalBarChartOptions,
+  DoughnutChartOptions,
 } from './charts/index.js'
 
 // Tables

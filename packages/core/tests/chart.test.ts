@@ -4,6 +4,9 @@ import {
   lineChart,
   pieChart,
   scatterChart,
+  areaChart,
+  horizontalBarChart,
+  doughnutChart,
 } from '../src/charts/index.js'
 
 const baseConfig = {
@@ -435,5 +438,203 @@ describe('scatterChart', () => {
 
     expect(output.html).toContain('pointRadius: 50')
     expect(output.html).toContain('pointHoverRadius: 52')
+  })
+})
+
+describe('areaChart', () => {
+  it('returns html, css and render', () => {
+    const output = areaChart({
+      ...baseConfig,
+      type: 'area',
+    })
+
+    expect(output.html).toContain('canvas')
+    expect(output.html).toContain("type: 'line'")
+    expect(output.html).toContain('fill: true')
+    expect(output.html).toContain('createLinearGradient')
+    expect(output.render()).toContain('<style>')
+  })
+
+  it('supports formatter options', () => {
+    const output = areaChart({
+      ...baseConfig,
+      type: 'area',
+      format: {
+        y: {
+          type: 'currency',
+          currency: 'GTQ',
+          maximumFractionDigits: 0,
+        },
+      },
+    })
+
+    expect(output.html).toContain('"currency":"GTQ"')
+    expect(output.html).toContain('vfFormatValue(value, vfYFormat)')
+  })
+
+  it('sanitizes area chart options', () => {
+    const output = areaChart(
+      {
+        ...baseConfig,
+        type: 'area',
+      },
+      {
+        tension: 2,
+        gradientOpacity: 5,
+        showPoints: 'invalid' as unknown as boolean,
+      }
+    )
+
+    expect(output.html).toContain('tension: 1')
+    expect(output.html).toContain('gradient.addColorStop(0, vfWithAlpha(primaryColor, 1))')
+    expect(output.html).toContain('pointRadius: 4')
+  })
+
+  it('rejects non-finite values', () => {
+    expect(() =>
+      areaChart({
+        ...baseConfig,
+        type: 'area',
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: Number.NaN }],
+        },
+      })
+    ).toThrow(
+      '[VizFlow] Chart: value at row 0 for key "value" is not a finite number'
+    )
+  })
+})
+
+describe('horizontalBarChart', () => {
+  it('returns a horizontal bar chart', () => {
+    const output = horizontalBarChart({
+      ...baseConfig,
+      type: 'horizontalBar',
+    })
+
+    expect(output.html).toContain('canvas')
+    expect(output.html).toContain("indexAxis: 'y'")
+    expect(output.html).toContain("type: 'bar'")
+  })
+
+  it('supports formatter options', () => {
+    const output = horizontalBarChart({
+      ...baseConfig,
+      type: 'horizontalBar',
+      format: {
+        y: {
+          type: 'compact',
+          maximumFractionDigits: 1,
+        },
+      },
+    })
+
+    expect(output.html).toContain('"type":"compact"')
+    expect(output.html).toContain('vfFormatValue(value, vfXFormat)')
+  })
+
+  it('sanitizes bar visual options', () => {
+    const output = horizontalBarChart(
+      {
+        ...baseConfig,
+        type: 'horizontalBar',
+      },
+      {
+        barThickness: 999,
+        borderRadius: 999,
+      }
+    )
+
+    expect(output.html).toContain('barThickness: 100')
+    expect(output.html).toContain('borderRadius: 40')
+  })
+
+  it('rejects non-finite values', () => {
+    expect(() =>
+      horizontalBarChart({
+        ...baseConfig,
+        type: 'horizontalBar',
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: Infinity }],
+        },
+      })
+    ).toThrow(
+      '[VizFlow] Chart: value at row 0 for key "value" is not a finite number'
+    )
+  })
+})
+
+describe('doughnutChart', () => {
+  it('returns a doughnut chart', () => {
+    const output = doughnutChart({
+      ...baseConfig,
+      type: 'doughnut',
+    })
+
+    expect(output.html).toContain('canvas')
+    expect(output.html).toContain("type: 'doughnut'")
+    expect(output.html).toContain('cutout: "65%"')
+  })
+
+  it('supports formatter options inside tooltips', () => {
+    const output = doughnutChart({
+      ...baseConfig,
+      type: 'doughnut',
+      format: {
+        tooltip: {
+          type: 'currency',
+          currency: 'USD',
+          maximumFractionDigits: 0,
+        },
+      },
+    })
+
+    expect(output.html).toContain('"type":"currency"')
+    expect(output.html).toContain('vfFormatValue(value, vfTooltipFormat)')
+  })
+
+  it('supports disabling percentage labels', () => {
+    const output = doughnutChart(
+      {
+        ...baseConfig,
+        type: 'doughnut',
+      },
+      {
+        showPercentages: false,
+      }
+    )
+
+    expect(output.html).toContain('if (!false)')
+  })
+
+  it('sanitizes cutout percentage', () => {
+    const output = doughnutChart(
+      {
+        ...baseConfig,
+        type: 'doughnut',
+      },
+      {
+        cutoutPercent: 999,
+      }
+    )
+
+    expect(output.html).toContain('cutout: "100%"')
+  })
+
+  it('rejects non-finite values', () => {
+    expect(() =>
+      doughnutChart({
+        ...baseConfig,
+        type: 'doughnut',
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: Number.NaN }],
+        },
+      })
+    ).toThrow(
+      '[VizFlow] Chart: value at row 0 for key "value" is not a finite number'
+    )
   })
 })

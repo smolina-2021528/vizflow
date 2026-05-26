@@ -92,7 +92,14 @@ export interface ChartFormatOptions {
 
 // ─── Chart types ──────────────────────────────────────────────────
 
-export type ChartType = 'bar' | 'line' | 'pie' | 'scatter'
+export type ChartType =
+  | 'bar'
+  | 'line'
+  | 'pie'
+  | 'scatter'
+  | 'area'
+  | 'horizontalBar'
+  | 'doughnut'
 
 export type ChartRounded = 'none' | 'sm' | 'md' | 'lg' | 'xl'
 
