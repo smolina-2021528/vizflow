@@ -2,6 +2,11 @@ import { ChartConfig, DataRow } from '../types/index.js'
 
 // ─── Shared utilities for all chart generators ────────────────────
 
+interface NumericSanitizerOptions {
+  min?: number
+  max?: number
+}
+
 /** Resolves the DataSource from any config that contains a DataSource into a DataRow array */
 export function resolveData(config: { data: ChartConfig['data'] }): DataRow[] {
   const { data } = config
@@ -29,15 +34,59 @@ function assertFiniteNumber(
   }
 }
 
+/** Sanitizes a numeric option before it is rendered into generated HTML/JS */
+export function sanitizeFiniteNumber(
+  value: unknown,
+  fallback: number,
+  options: NumericSanitizerOptions = {}
+): number {
+  const numericValue =
+    typeof value === 'number' || typeof value === 'string'
+      ? Number(value)
+      : Number.NaN
+
+  if (!Number.isFinite(numericValue)) {
+    return fallback
+  }
+
+  const min = options.min ?? Number.NEGATIVE_INFINITY
+  const max = options.max ?? Number.POSITIVE_INFINITY
+
+  return Math.min(Math.max(numericValue, min), max)
+}
+
+/** Sanitizes an integer option before it is rendered into generated HTML/JS */
+export function sanitizeInteger(
+  value: unknown,
+  fallback: number,
+  options: NumericSanitizerOptions = {}
+): number {
+  return Math.trunc(sanitizeFiniteNumber(value, fallback, options))
+}
+
+/** Sanitizes a boolean option before it is rendered into generated HTML/JS */
+export function sanitizeBoolean(value: unknown, fallback: boolean): boolean {
+  if (typeof value === 'boolean') {
+    return value
+  }
+
+  if (value === 'true') {
+    return true
+  }
+
+  if (value === 'false') {
+    return false
+  }
+
+  return fallback
+}
+
 /** Extracts an array of numeric Y axis values from the resolved rows */
 export function extractValues(rows: DataRow[], yKey: string): number[] {
   return rows.map((row, index) => {
     const value = row[yKey]
 
-    assertFiniteNumber(
-      value,
-      `Chart: value at row ${index} for key "${yKey}"`
-    )
+    assertFiniteNumber(value, `Chart: value at row ${index} for key "${yKey}"`)
 
     return value
   })

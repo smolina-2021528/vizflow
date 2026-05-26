@@ -6,8 +6,11 @@ import {
   generateId,
   buildWrapperCss,
   buildChartColorScript,
+  sanitizeBoolean,
+  sanitizeFiniteNumber,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
+
 // ─── Extended config for line charts ─────────────────────────────
 
 export interface LineChartOptions {
@@ -28,9 +31,12 @@ function buildHtml(
   title: string,
   options: LineChartOptions
 ): string {
-  const fill = options.fill ?? false
-  const showPoints = options.showPoints ?? true
-  const tension = options.tension ?? 0.3
+  const fill = sanitizeBoolean(options.fill, false)
+  const showPoints = sanitizeBoolean(options.showPoints, true)
+  const tension = sanitizeFiniteNumber(options.tension, 0.3, {
+    min: 0,
+    max: 1,
+  })
 
   return `
 <div id="vf-${id}">
@@ -91,8 +97,8 @@ export function lineChart(
   options: LineChartOptions = {}
 ): VizFlowOutput {
   const id = generateId()
-  const width = config.width ?? 600
-  const height = config.height ?? 400
+  const width = sanitizeFiniteNumber(config.width, 600, { min: 1 })
+  const height = sanitizeFiniteNumber(config.height, 400, { min: 1 })
   const title = config.title ?? 'Line Chart'
 
   const rows = resolveData(config)

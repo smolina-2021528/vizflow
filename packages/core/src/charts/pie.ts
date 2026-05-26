@@ -6,8 +6,11 @@ import {
   generateId,
   buildWrapperCss,
   buildChartColorScript,
+  sanitizeBoolean,
+  sanitizeFiniteNumber,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
+
 // ─── Extended config for pie charts ──────────────────────────────
 
 export interface PieChartOptions {
@@ -19,13 +22,6 @@ export interface PieChartOptions {
   cutoutPercent?: number
 }
 
-// ─── Color palette builder ────────────────────────────────────────
-
-/**
- * Generates an array of RGBA colors for each pie slice.
- * Uses indigo as base color with varying opacity levels.
- */
-
 // ─── HTML builder ─────────────────────────────────────────────────
 
 function buildHtml(
@@ -35,9 +31,13 @@ function buildHtml(
   title: string,
   options: PieChartOptions
 ): string {
-  const donut = options.donut ?? false
-  const cutout = donut ? `${options.cutoutPercent ?? 60}%` : '0%'
-  const showPercentages = options.showPercentages ?? false
+  const donut = sanitizeBoolean(options.donut, false)
+  const cutoutPercent = sanitizeFiniteNumber(options.cutoutPercent, 60, {
+    min: 0,
+    max: 100,
+  })
+  const cutout = donut ? `${cutoutPercent}%` : '0%'
+  const showPercentages = sanitizeBoolean(options.showPercentages, false)
 
   return `
 <div id="vf-${id}">
@@ -114,8 +114,8 @@ export function pieChart(
   options: PieChartOptions = {}
 ): VizFlowOutput {
   const id = generateId()
-  const width = config.width ?? 500
-  const height = config.height ?? 500
+  const width = sanitizeFiniteNumber(config.width, 500, { min: 1 })
+  const height = sanitizeFiniteNumber(config.height, 500, { min: 1 })
   const title = config.title ?? 'Pie Chart'
 
   const rows = resolveData(config)

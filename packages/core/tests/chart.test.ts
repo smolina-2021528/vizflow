@@ -54,7 +54,9 @@ describe('barChart', () => {
           rows: [{ label: 'A', value: Number.NaN }],
         },
       })
-    ).toThrow('[VizFlow] Chart: value at row 0 for key "value" is not a finite number')
+    ).toThrow(
+      '[VizFlow] Chart: value at row 0 for key "value" is not a finite number'
+    )
   })
 
   it('rejects Infinity values before generating chart html', () => {
@@ -66,7 +68,31 @@ describe('barChart', () => {
           rows: [{ label: 'A', value: Infinity }],
         },
       })
-    ).toThrow('[VizFlow] Chart: value at row 0 for key "value" is not a finite number')
+    ).toThrow(
+      '[VizFlow] Chart: value at row 0 for key "value" is not a finite number'
+    )
+  })
+
+  it('falls back to safe default dimensions when width or height are invalid', () => {
+    const output = barChart({
+      ...baseConfig,
+      width: Infinity,
+      height: Number.NaN,
+    })
+
+    expect(output.css).toContain('width: 600px')
+    expect(output.css).toContain('height: 400px')
+  })
+
+  it('clamps chart dimensions to a minimum of 1px', () => {
+    const output = barChart({
+      ...baseConfig,
+      width: -100,
+      height: 0,
+    })
+
+    expect(output.css).toContain('width: 1px')
+    expect(output.css).toContain('height: 1px')
   })
 })
 
@@ -86,7 +112,36 @@ describe('lineChart', () => {
           rows: [{ label: 'A', value: -Infinity }],
         },
       })
-    ).toThrow('[VizFlow] Chart: value at row 0 for key "value" is not a finite number')
+    ).toThrow(
+      '[VizFlow] Chart: value at row 0 for key "value" is not a finite number'
+    )
+  })
+
+  it('falls back to default tension when tension is invalid', () => {
+    const output = lineChart(baseConfig, {
+      tension: '0); alert("x"); //' as unknown as number,
+    })
+
+    expect(output.html).toContain('tension: 0.3')
+    expect(output.html).not.toContain('alert("x")')
+  })
+
+  it('clamps tension between 0 and 1', () => {
+    const output = lineChart(baseConfig, {
+      tension: 10,
+    })
+
+    expect(output.html).toContain('tension: 1')
+  })
+
+  it('falls back to default booleans when boolean options are invalid', () => {
+    const output = lineChart(baseConfig, {
+      fill: 'invalid' as unknown as boolean,
+      showPoints: 'invalid' as unknown as boolean,
+    })
+
+    expect(output.html).toContain('fill: false')
+    expect(output.html).toContain('pointRadius: 4')
   })
 })
 
@@ -112,23 +167,46 @@ describe('pieChart', () => {
           rows: [{ label: 'A', value: Number.NaN }],
         },
       })
-    ).toThrow('[VizFlow] Chart: value at row 0 for key "value" is not a finite number')
+    ).toThrow(
+      '[VizFlow] Chart: value at row 0 for key "value" is not a finite number'
+    )
+  })
+
+  it('falls back to default cutoutPercent when cutoutPercent is invalid', () => {
+    const output = pieChart(baseConfig, {
+      donut: true,
+      cutoutPercent: '60); alert("x"); //' as unknown as number,
+    })
+
+    expect(output.html).toContain('cutout: "60%"')
+    expect(output.html).not.toContain('alert("x")')
+  })
+
+  it('clamps cutoutPercent between 0 and 100', () => {
+    const output = pieChart(baseConfig, {
+      donut: true,
+      cutoutPercent: 500,
+    })
+
+    expect(output.html).toContain('cutout: "100%"')
   })
 })
 
 describe('scatterChart', () => {
+  const scatterConfig = {
+    ...baseConfig,
+    type: 'scatter' as const,
+    data: {
+      kind: 'inline' as const,
+      rows: [
+        { label: 1, value: 10 },
+        { label: 2, value: 20 },
+      ],
+    },
+  }
+
   it('returns html with canvas', () => {
-    const output = scatterChart({
-      ...baseConfig,
-      type: 'scatter',
-      data: {
-        kind: 'inline',
-        rows: [
-          { label: 1, value: 10 },
-          { label: 2, value: 20 },
-        ],
-      },
-    })
+    const output = scatterChart(scatterConfig)
 
     expect(output.html).toContain('canvas')
   })
@@ -161,5 +239,24 @@ describe('scatterChart', () => {
     ).toThrow(
       '[VizFlow] Scatter chart: y value at row 0 for key "value" is not a finite number'
     )
+  })
+
+  it('falls back to default pointRadius when pointRadius is invalid', () => {
+    const output = scatterChart(scatterConfig, {
+      pointRadius: '5); alert("x"); //' as unknown as number,
+    })
+
+    expect(output.html).toContain('pointRadius: 5')
+    expect(output.html).toContain('pointHoverRadius: 7')
+    expect(output.html).not.toContain('alert("x")')
+  })
+
+  it('clamps pointRadius between 0 and 50', () => {
+    const output = scatterChart(scatterConfig, {
+      pointRadius: 1000,
+    })
+
+    expect(output.html).toContain('pointRadius: 50')
+    expect(output.html).toContain('pointHoverRadius: 52')
   })
 })

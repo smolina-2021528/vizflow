@@ -5,8 +5,10 @@ import {
   generateId,
   buildWrapperCss,
   buildChartColorScript,
+  sanitizeFiniteNumber,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
+
 // ─── Extended config for scatter charts ──────────────────────────
 
 export interface ScatterChartOptions {
@@ -28,7 +30,10 @@ function buildHtml(
   xKey: string,
   yKey: string
 ): string {
-  const pointRadius = options.pointRadius ?? 5
+  const pointRadius = sanitizeFiniteNumber(options.pointRadius, 5, {
+    min: 0,
+    max: 50,
+  })
   const xAxisLabel = options.xAxisLabel ?? xKey
   const yAxisLabel = options.yAxisLabel ?? yKey
 
@@ -92,8 +97,8 @@ export function scatterChart(
   options: ScatterChartOptions = {}
 ): VizFlowOutput {
   const id = generateId()
-  const width = config.width ?? 600
-  const height = config.height ?? 400
+  const width = sanitizeFiniteNumber(config.width, 600, { min: 1 })
+  const height = sanitizeFiniteNumber(config.height, 400, { min: 1 })
   const title = config.title ?? 'Scatter Chart'
 
   const rows = resolveData(config)

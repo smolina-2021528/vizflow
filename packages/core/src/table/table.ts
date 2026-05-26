@@ -1,5 +1,5 @@
 import { TableConfig, VizFlowOutput } from '../types/index.js'
-import { resolveData } from '../charts/shared.js'
+import { resolveData, sanitizeInteger } from '../charts/shared.js'
 import { escapeHtml } from '../utils/escape.js'
 
 // ─── Extended config for table ────────────────────────────────────
@@ -8,7 +8,6 @@ export interface TableOptions {
   /** Number of rows per page — defaults to 10, set to 0 to disable pagination */
   pageSize?: number
 }
-
 
 // build Header Cell
 function buildHeaderCell(col: TableConfig['columns'][number]): string {
@@ -29,7 +28,9 @@ function buildTableHtml(
 ): string {
   const rows = resolveData(config)
   const columns = config.columns
-  const pageSize = Math.max(0, options.pageSize ?? config.pageSize ?? 10)
+  const pageSize = sanitizeInteger(options.pageSize ?? config.pageSize, 10, {
+    min: 0,
+  })
 
   const headers = columns.map(buildHeaderCell).join('\n      ')
 

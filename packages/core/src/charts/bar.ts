@@ -6,8 +6,10 @@ import {
   generateId,
   buildWrapperCss,
   buildChartColorScript,
+  sanitizeFiniteNumber,
 } from './shared.js'
 import { toJsonScriptValue } from '../utils/escape.js'
+
 // ─── HTML builder ─────────────────────────────────────────────────
 
 function buildHtml(
@@ -67,8 +69,8 @@ function buildHtml(
  */
 export function barChart(config: ChartConfig): VizFlowOutput {
   const id = generateId()
-  const width = config.width ?? 600
-  const height = config.height ?? 400
+  const width = sanitizeFiniteNumber(config.width, 600, { min: 1 })
+  const height = sanitizeFiniteNumber(config.height, 400, { min: 1 })
   const title = config.title ?? 'Bar Chart'
 
   const rows = resolveData(config)
