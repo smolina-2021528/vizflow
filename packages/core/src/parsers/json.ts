@@ -21,9 +21,12 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 function isValidPrimitive(
   value: unknown
 ): value is string | number | boolean | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value)
+  }
+
   return (
     typeof value === 'string' ||
-    typeof value === 'number' ||
     typeof value === 'boolean' ||
     value === null
   )
@@ -40,10 +43,17 @@ function validateRows(rows: unknown[]): DataRow[] {
 
     for (const [key, value] of Object.entries(row)) {
       if (!isValidPrimitive(value)) {
+        if (typeof value === 'number' && !Number.isFinite(value)) {
+          throw new JsonParseError(
+            `Value at row ${index}, key "${key}" must be a finite number`
+          )
+        }
+
         throw new JsonParseError(
           `Value at row ${index}, key "${key}" must be a string, number, boolean, or null`
         )
       }
+
       validated[key] = value
     }
 

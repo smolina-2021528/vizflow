@@ -11,9 +11,25 @@ export class CsvParseError extends Error {
 }
 
 // ─── Type inference ───────────────────────────────────────────────
+
+function looksLikeNumericValue(value: string): boolean {
+  return /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(value)
+}
+
+function isNonFiniteToken(value: string): boolean {
+  const normalized = value.toLowerCase()
+
+  return (
+    normalized === 'nan' ||
+    normalized === 'infinity' ||
+    normalized === '+infinity' ||
+    normalized === '-infinity'
+  )
+}
+
 /**
  * Infers the correct primitive type from a raw CSV string value.
- * Order of inference: null → boolean → number → string
+ * Order of inference: null → boolean → finite number → string
  */
 function inferType(value: string): string | number | boolean | null {
   const trimmed = value.trim()
@@ -25,15 +41,29 @@ function inferType(value: string): string | number | boolean | null {
   if (trimmed.toLowerCase() === 'true') return true
   if (trimmed.toLowerCase() === 'false') return false
 
-  // Number inference — rejects strings like "12abc"
-  const asNumber = Number(trimmed)
-  if (!isNaN(asNumber) && trimmed !== '') return asNumber
+  // Reject unsafe numeric-like values before they reach chart/table rendering
+  if (isNonFiniteToken(trimmed)) {
+    throw new CsvParseError(`Non-finite numeric value "${trimmed}" is not allowed`)
+  }
+
+  if (looksLikeNumericValue(trimmed)) {
+    const asNumber = Number(trimmed)
+
+    if (!Number.isFinite(asNumber)) {
+      throw new CsvParseError(
+        `Non-finite numeric value "${trimmed}" is not allowed`
+      )
+    }
+
+    return asNumber
+  }
 
   // Default: keep as string
   return trimmed
 }
 
 // ─── Row parser ───────────────────────────────────────────────────
+
 /**
  * Splits a single CSV line into individual cell values.
  * Handles quoted fields that may contain commas inside them.
@@ -82,7 +112,9 @@ function splitLine(line: string): string[] {
  * @throws CsvParseError if the CSV is malformed or empty
  */
 export function parseCsv(raw: string): DataRow[] {
-  const lines = raw
+  const normalizedRaw = raw.replace(/^\uFEFF/, '')
+
+  const lines = normalizedRaw
     .split('\n')
     .map(line => line.trim())
     .filter(line => line.length > 0)
@@ -98,10 +130,14 @@ export function parseCsv(raw: string): DataRow[] {
   }
 
   // First line is always the header
-  const headers = splitLine(lines[0])
+  const headers = splitLine(lines[0]).map(header => header.trim())
 
   if (headers.length === 0) {
     throw new CsvParseError('Header row is empty')
+  }
+
+  if (headers.some(header => header.length === 0)) {
+    throw new CsvParseError('Header row contains empty column names')
   }
 
   // Check for duplicate headers
