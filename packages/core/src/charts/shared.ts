@@ -20,15 +20,25 @@ export function extractLabels(rows: DataRow[], xKey: string): string[] {
   return rows.map(row => String(row[xKey] ?? ''))
 }
 
+function assertFiniteNumber(
+  value: unknown,
+  context: string
+): asserts value is number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`[VizFlow] ${context} is not a finite number`)
+  }
+}
+
 /** Extracts an array of numeric Y axis values from the resolved rows */
 export function extractValues(rows: DataRow[], yKey: string): number[] {
   return rows.map((row, index) => {
     const value = row[yKey]
-    if (typeof value !== 'number') {
-      throw new Error(
-        `[VizFlow] Chart: value at row ${index} for key "${yKey}" is not a number`
-      )
-    }
+
+    assertFiniteNumber(
+      value,
+      `Chart: value at row ${index} for key "${yKey}"`
+    )
+
     return value
   })
 }
@@ -43,16 +53,15 @@ export function extractPoints(
     const x = row[xKey]
     const y = row[yKey]
 
-    if (typeof x !== 'number') {
-      throw new Error(
-        `[VizFlow] Scatter chart: x value at row ${index} for key "${xKey}" is not a number`
-      )
-    }
-    if (typeof y !== 'number') {
-      throw new Error(
-        `[VizFlow] Scatter chart: y value at row ${index} for key "${yKey}" is not a number`
-      )
-    }
+    assertFiniteNumber(
+      x,
+      `Scatter chart: x value at row ${index} for key "${xKey}"`
+    )
+
+    assertFiniteNumber(
+      y,
+      `Scatter chart: y value at row ${index} for key "${yKey}"`
+    )
 
     return { x, y }
   })

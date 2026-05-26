@@ -44,6 +44,30 @@ describe('barChart', () => {
 
     expect(output.html).toContain('--vf-chart-1')
   })
+
+  it('rejects NaN values before generating chart html', () => {
+    expect(() =>
+      barChart({
+        ...baseConfig,
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: Number.NaN }],
+        },
+      })
+    ).toThrow('[VizFlow] Chart: value at row 0 for key "value" is not a finite number')
+  })
+
+  it('rejects Infinity values before generating chart html', () => {
+    expect(() =>
+      barChart({
+        ...baseConfig,
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: Infinity }],
+        },
+      })
+    ).toThrow('[VizFlow] Chart: value at row 0 for key "value" is not a finite number')
+  })
 })
 
 describe('lineChart', () => {
@@ -51,6 +75,18 @@ describe('lineChart', () => {
     const output = lineChart(baseConfig)
 
     expect(output.html).toContain('canvas')
+  })
+
+  it('rejects non-finite line values', () => {
+    expect(() =>
+      lineChart({
+        ...baseConfig,
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: -Infinity }],
+        },
+      })
+    ).toThrow('[VizFlow] Chart: value at row 0 for key "value" is not a finite number')
   })
 })
 
@@ -65,6 +101,18 @@ describe('pieChart', () => {
     const output = pieChart(baseConfig, { showPercentages: true })
 
     expect(output.html).toContain('percentage.toFixed(1)')
+  })
+
+  it('rejects non-finite pie values', () => {
+    expect(() =>
+      pieChart({
+        ...baseConfig,
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: Number.NaN }],
+        },
+      })
+    ).toThrow('[VizFlow] Chart: value at row 0 for key "value" is not a finite number')
   })
 })
 
@@ -83,5 +131,35 @@ describe('scatterChart', () => {
     })
 
     expect(output.html).toContain('canvas')
+  })
+
+  it('rejects non-finite x values', () => {
+    expect(() =>
+      scatterChart({
+        ...baseConfig,
+        type: 'scatter',
+        data: {
+          kind: 'inline',
+          rows: [{ label: Infinity, value: 10 }],
+        },
+      })
+    ).toThrow(
+      '[VizFlow] Scatter chart: x value at row 0 for key "label" is not a finite number'
+    )
+  })
+
+  it('rejects non-finite y values', () => {
+    expect(() =>
+      scatterChart({
+        ...baseConfig,
+        type: 'scatter',
+        data: {
+          kind: 'inline',
+          rows: [{ label: 1, value: Number.NaN }],
+        },
+      })
+    ).toThrow(
+      '[VizFlow] Scatter chart: y value at row 0 for key "value" is not a finite number'
+    )
   })
 })
