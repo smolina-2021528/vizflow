@@ -215,6 +215,50 @@ export interface ProgressBarConfig {
   appearance?: ComponentAppearance
 }
 
+// ─── Heatmap types ────────────────────────────────────────────────
+
+export type HeatmapColorScale =
+  | 'blue'
+  | 'green'
+  | 'purple'
+  | 'orange'
+  | 'gray'
+
+export type HeatmapDensity = 'compact' | 'comfortable'
+
+export interface HeatmapConfig {
+  title: string
+  subtitle?: string
+  /**
+   * Row labels displayed on the left side of the heatmap.
+   */
+  rows: string[]
+  /**
+   * Column labels displayed at the top of the heatmap.
+   */
+  columns: string[]
+  /**
+   * Matrix of values. Each inner array represents one row.
+   */
+  values: number[][]
+  width?: number
+  /**
+   * Optional minimum value used to calculate color intensity.
+   * If omitted, VizFlow uses the lowest value in the matrix.
+   */
+  min?: number
+  /**
+   * Optional maximum value used to calculate color intensity.
+   * If omitted, VizFlow uses the highest value in the matrix.
+   */
+  max?: number
+  valueFormat?: ValueFormatOptions
+  colorScale?: HeatmapColorScale
+  density?: HeatmapDensity
+  showValues?: boolean
+  appearance?: ComponentAppearance
+}
+
 // ─── Table types ──────────────────────────────────────────────────
 
 export type TableColumnAlign = 'left' | 'center' | 'right'

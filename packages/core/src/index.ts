@@ -21,6 +21,11 @@ export type {
   ProgressBarVariant,
   ProgressBarSize,
   ProgressBarConfig,
+  HeatmapColorScale,
+  HeatmapDensity,
+  HeatmapConfig,
+  TableColumnAlign,
+  TableDensity,
   ColumnDef,
   TableConfig,
   VizFlowOutput,
@@ -51,7 +56,7 @@ export type {
 } from './charts/index.js'
 
 // Components
-export { metricCard, progressBar } from './components/index.js'
+export { metricCard, progressBar, heatmap } from './components/index.js'
 
 // Tables
 export { table } from './table/index.js'
