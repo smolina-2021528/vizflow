@@ -137,6 +137,84 @@ export interface ChartConfig {
   format?: ChartFormatOptions
 }
 
+// ─── Dashboard component types ────────────────────────────────────
+
+export interface ComponentAppearance {
+  /**
+   * Render the component as a dashboard-style card.
+   * Defaults to true.
+   */
+  card?: boolean
+  /**
+   * Add a soft shadow to the component card.
+   * Defaults to true when card is enabled.
+   */
+  shadow?: boolean
+  /**
+   * Border radius style for the component card.
+   * Defaults to 'lg'.
+   */
+  rounded?: ChartRounded
+}
+
+export type MetricTrendDirection = 'up' | 'down' | 'neutral'
+
+export interface MetricTrend {
+  /**
+   * Trend value.
+   * By default, metricCard renders this as a percentage-style number, e.g. +12.5%.
+   */
+  value: number
+  /**
+   * Visual direction. If omitted, VizFlow infers it from the value.
+   */
+  direction?: MetricTrendDirection
+  /**
+   * Text shown after the trend value.
+   * Example: 'vs previous month'
+   */
+  label?: string
+  /**
+   * Custom formatter for the trend value.
+   */
+  format?: ValueFormatOptions
+}
+
+export interface MetricCardConfig {
+  title: string
+  value: number
+  subtitle?: string
+  footer?: string
+  width?: number
+  valueFormat?: ValueFormatOptions
+  trend?: MetricTrend
+  appearance?: ComponentAppearance
+}
+
+export type ProgressBarVariant =
+  | 'default'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+
+export type ProgressBarSize = 'sm' | 'md' | 'lg'
+
+export interface ProgressBarConfig {
+  title: string
+  value: number
+  max?: number
+  subtitle?: string
+  width?: number
+  valueFormat?: ValueFormatOptions
+  percentageFormat?: ValueFormatOptions
+  showValue?: boolean
+  showPercentage?: boolean
+  variant?: ProgressBarVariant
+  size?: ProgressBarSize
+  appearance?: ComponentAppearance
+}
+
 // ─── Table types ──────────────────────────────────────────────────
 
 export interface ColumnDef {

@@ -14,6 +14,13 @@ export type {
   ChartRounded,
   ChartAppearance,
   ChartConfig,
+  ComponentAppearance,
+  MetricTrendDirection,
+  MetricTrend,
+  MetricCardConfig,
+  ProgressBarVariant,
+  ProgressBarSize,
+  ProgressBarConfig,
   ColumnDef,
   TableConfig,
   VizFlowOutput,
@@ -42,6 +49,9 @@ export type {
   HorizontalBarChartOptions,
   DoughnutChartOptions,
 } from './charts/index.js'
+
+// Components
+export { metricCard, progressBar } from './components/index.js'
 
 // Tables
 export { table } from './table/index.js'
