@@ -217,6 +217,9 @@ export interface ProgressBarConfig {
 
 // ─── Table types ──────────────────────────────────────────────────
 
+export type TableColumnAlign = 'left' | 'center' | 'right'
+export type TableDensity = 'compact' | 'comfortable'
+
 export interface ColumnDef {
   /** Key from DataRow */
   key: string
@@ -224,10 +227,20 @@ export interface ColumnDef {
   label: string
   sortable?: boolean
   width?: string
+  /**
+   * Text alignment for this column.
+   * Defaults to left.
+   */
+  align?: TableColumnAlign
+  /**
+   * Optional value formatter for numeric cells.
+   */
+  format?: ValueFormatOptions
 }
 
 export interface TableConfig {
   title?: string
+  subtitle?: string
   data: DataSource
   columns: ColumnDef[]
   theme?: Theme
