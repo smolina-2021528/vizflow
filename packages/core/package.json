@@ -1,7 +1,7 @@
 {
   "name": "@smolina-dev/vizflow-core",
-  "version": "1.1.1",
-  "description": "VizFlow.js core — chart and table generators",
+  "version": "1.2.0",
+  "description": "VizFlow.js core — charts, tables and dashboard-ready visualizations",
   "license": "MIT",
   "author": "Alejandro Molina",
   "homepage": "https://github.com/smolina-2021528/vizflow#readme",

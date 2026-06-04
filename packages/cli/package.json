@@ -1,7 +1,7 @@
 {
   "name": "@smolina-dev/vizflow-cli",
-  "version": "1.1.1",
-  "description": "Conversational CLI wizard for VizFlow.js",
+  "version": "1.2.0",
+  "description": "Conversational CLI wizard for generating VizFlow.js visualizations",
   "license": "MIT",
   "author": "Alejandro Molina",
   "homepage": "https://github.com/smolina-2021528/vizflow#readme",
