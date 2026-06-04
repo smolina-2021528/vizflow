@@ -1,166 +1,109 @@
 // ─── /heatmap wizard ─────────────────────────────────────────────
 
-import { select, input } from '@inquirer/prompts'
-import { buildThemeStyle } from '@smolina-dev/vizflow-core'
+import { confirm, input, select } from '@inquirer/prompts'
+
+import { heatmap, toHtmlFile } from '@smolina-dev/vizflow-core'
+import type {
+  HeatmapColorScale,
+  HeatmapConfig,
+  HeatmapDensity,
+  ValueFormatOptions,
+} from '@smolina-dev/vizflow-core'
 import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
-import { writeFileSync } from 'fs'
-import { resolve } from 'path'
-import { parseFiniteNumberOrDefault } from '../utils/number.js'
 
-// ─── Types ────────────────────────────────────────────────────────
+import { parseFiniteNumber, parseFiniteNumberOrDefault } from '../utils/number.js'
+import { writeOutputFile } from '../utils/output.js'
 
-interface HeatmapData {
-  rowLabels: string[]
-  colLabels: string[]
-  values: number[][]
-}
+// ─── Choices ──────────────────────────────────────────────────────
 
 const themeChoices: { name: string; value: BuiltInThemeName }[] = [
-  { name: 'Light', value: 'light' },
-  { name: 'Dark', value: 'dark' },
-  { name: 'Hot', value: 'hot' },
-  { name: 'Cold', value: 'cold' },
-  { name: 'Corporate', value: 'corporate' },
-  { name: 'Emerald', value: 'emerald' },
-  { name: 'Midnight', value: 'midnight' },
-  { name: 'Sunset', value: 'sunset' },
+  { name: 'Light — clean default', value: 'light' },
+  { name: 'Dark — dark dashboard', value: 'dark' },
+  { name: 'Hot — warm red/orange', value: 'hot' },
+  { name: 'Cold — cool blue/cyan', value: 'cold' },
+  { name: 'Corporate — professional blue/gray', value: 'corporate' },
+  { name: 'Emerald — growth-focused green', value: 'emerald' },
+  { name: 'Midnight — premium dark', value: 'midnight' },
+  { name: 'Sunset — warm presentation style', value: 'sunset' },
 ]
 
-// ─── HTML escaping ────────────────────────────────────────────────
+type CliFormatType = 'none' | 'number' | 'currency' | 'percent' | 'compact'
 
-function escapeHtml(value: unknown): string {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+// ─── Helpers ──────────────────────────────────────────────────────
+
+function optionalText(value: string): string | undefined {
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
 }
 
-// ─── HTML builder ─────────────────────────────────────────────────
+function parseOptionalFiniteNumber(value: string): number | undefined {
+  const parsed = parseFiniteNumber(value)
+  return parsed === null ? undefined : parsed
+}
 
-function buildHeatmapHtml(data: HeatmapData, title: string): string {
-  const allValues = data.values.flat()
-  const min = Math.min(...allValues)
-  const max = Math.max(...allValues)
+async function collectValueFormat(): Promise<ValueFormatOptions | undefined> {
+  const type = await select<CliFormatType>({
+    message: 'Cell value format?',
+    choices: [
+      { name: 'None / default number', value: 'none' },
+      { name: 'Number', value: 'number' },
+      { name: 'Currency', value: 'currency' },
+      { name: 'Percent', value: 'percent' },
+      { name: 'Compact number', value: 'compact' },
+    ],
+  })
 
-  function toColor(value: number): string {
-    const ratio = max === min ? 0.5 : (value - min) / (max - min)
-    const hue = Math.round((1 - ratio) * 220)
-    const lightness = Math.round(90 - ratio * 40)
-    return `hsl(${hue}, 70%, ${lightness}%)`
+  if (type === 'none') {
+    return undefined
   }
 
-  const headerCells = data.colLabels
-    .map(col => `<th>${escapeHtml(col)}</th>`)
-    .join('')
+  const locale = await input({
+    message: 'Locale?',
+    default: 'en-US',
+  })
 
-  const bodyRows = data.rowLabels
-    .map((rowLabel, rIdx) => {
-      const cells = data.colLabels
-        .map((_, cIdx) => {
-          const val = data.values[rIdx]?.[cIdx] ?? 0
-          const bg = toColor(val)
-          return `<td style="background:${bg}">${escapeHtml(val)}</td>`
-        })
-        .join('')
+  const maximumFractionDigitsRaw = await input({
+    message: 'Maximum fraction digits?',
+    default: type === 'currency' ? '0' : '1',
+  })
 
-      return `<tr><th>${escapeHtml(rowLabel)}</th>${cells}</tr>`
+  const maximumFractionDigits = parseOptionalFiniteNumber(
+    maximumFractionDigitsRaw
+  )
+
+  if (type === 'currency') {
+    const currency = await input({
+      message: 'Currency code?',
+      default: 'USD',
     })
-    .join('\n      ')
 
-  return `
-<div class="vf-heatmap-wrapper">
-  <h2 class="vf-heatmap-title">${escapeHtml(title)}</h2>
-  <div style="overflow-x:auto">
-    <table class="vf-heatmap">
-      <thead>
-        <tr><th></th>${headerCells}</tr>
-      </thead>
-      <tbody>
-      ${bodyRows}
-      </tbody>
-    </table>
-  </div>
-</div>
-<style>
-.vf-heatmap-wrapper {
-  font-family: var(--vf-font, system-ui, sans-serif);
-  background: var(--vf-background, #ffffff);
-  padding: 24px;
-  border-radius: var(--vf-radius, 8px);
-  display: inline-block;
-}
-.vf-heatmap-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--vf-text, #111827);
-  margin: 0 0 16px 0;
-}
-.vf-heatmap {
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-.vf-heatmap th {
-  padding: 8px 12px;
-  color: var(--vf-text, #111827);
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-}
-.vf-heatmap td {
-  padding: 10px 16px;
-  text-align: center;
-  font-weight: 500;
-  color: #1f2937;
-  border: 1px solid var(--vf-border, #e5e7eb);
-  min-width: 48px;
-  transition: opacity 0.15s;
-}
-.vf-heatmap td:hover { opacity: 0.8; }
-</style>
-  `.trim()
+    return {
+      type,
+      locale,
+      currency,
+      maximumFractionDigits,
+    }
+  }
+
+  return {
+    type,
+    locale,
+    maximumFractionDigits,
+  }
 }
 
-// ─── HTML file writer ─────────────────────────────────────────────
-
-function writeHtml(
-  filename: string,
-  content: string,
-  theme: BuiltInThemeName
-): void {
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VizFlow Heatmap</title>
-  <style>${buildThemeStyle(theme)}</style>
-</head>
-<body style="padding:32px;background:var(--vf-background);margin:0">
-  ${content}
-</body>
-</html>`
-
-  const outPath = resolve(process.cwd(), filename)
-  writeFileSync(outPath, html, 'utf-8')
-  console.log(`\n✅ Heatmap saved to: ${outPath}\n`)
-}
-
-// ─── Data collector ───────────────────────────────────────────────
-
-async function collectHeatmapData(): Promise<HeatmapData> {
+async function collectHeatmapData(): Promise<Pick<HeatmapConfig, 'rows' | 'columns' | 'values'>> {
   const colRaw = await input({
     message: 'Column labels (comma-separated):',
     default: 'Mon,Tue,Wed,Thu,Fri',
   })
 
-  const colLabels = colRaw
+  const columns = colRaw
     .split(',')
     .map(s => s.trim())
     .filter(Boolean)
 
-  const rowLabels: string[] = []
+  const rows: string[] = []
   const values: number[][] = []
 
   console.log('\nEnter row data. Leave row name empty to finish.\n')
@@ -170,21 +113,21 @@ async function collectHeatmapData(): Promise<HeatmapData> {
     if (rowLabel.trim() === '') break
 
     const valRaw = await input({
-      message: `  Values for "${rowLabel}" (${colLabels.length} numbers, comma-separated):`,
+      message: `  Values for "${rowLabel}" (${columns.length} numbers, comma-separated):`,
     })
 
     const rowValues = valRaw
       .split(',')
       .map(s => parseFiniteNumberOrDefault(s, 0))
 
-    while (rowValues.length < colLabels.length) rowValues.push(0)
-    rowValues.length = colLabels.length
+    while (rowValues.length < columns.length) rowValues.push(0)
+    rowValues.length = columns.length
 
-    rowLabels.push(rowLabel)
+    rows.push(rowLabel)
     values.push(rowValues)
   }
 
-  return { rowLabels, colLabels, values }
+  return { rows, columns, values }
 }
 
 // ─── Wizard entry point ───────────────────────────────────────────
@@ -197,12 +140,65 @@ export async function run(): Promise<void> {
     default: 'My Heatmap',
   })
 
+  const subtitleRaw = await input({
+    message: 'Heatmap subtitle? (leave blank to skip)',
+    default: '',
+  })
+
   const data = await collectHeatmapData()
 
-  if (data.rowLabels.length === 0) {
+  if (data.rows.length === 0) {
     console.log('\n⚠ No data entered — aborting.\n')
     return
   }
+
+  if (data.columns.length === 0) {
+    console.log('\n⚠ No columns defined — aborting.\n')
+    return
+  }
+
+  const colorScale = await select<HeatmapColorScale>({
+    message: 'Color scale?',
+    choices: [
+      { name: 'Blue', value: 'blue' },
+      { name: 'Green', value: 'green' },
+      { name: 'Purple', value: 'purple' },
+      { name: 'Orange', value: 'orange' },
+      { name: 'Gray', value: 'gray' },
+    ],
+    default: 'blue',
+  })
+
+  const density = await select<HeatmapDensity>({
+    message: 'Heatmap density?',
+    choices: [
+      { name: 'Comfortable', value: 'comfortable' },
+      { name: 'Compact', value: 'compact' },
+    ],
+    default: 'comfortable',
+  })
+
+  const showValues = await confirm({
+    message: 'Show values inside cells?',
+    default: true,
+  })
+
+  const valueFormat = await collectValueFormat()
+
+  const minRaw = await input({
+    message: 'Custom min value? (leave blank for automatic)',
+    default: '',
+  })
+
+  const maxRaw = await input({
+    message: 'Custom max value? (leave blank for automatic)',
+    default: '',
+  })
+
+  const widthRaw = await input({
+    message: 'Heatmap width?',
+    default: '720',
+  })
 
   const theme = await select<BuiltInThemeName>({
     message: 'Theme?',
@@ -214,6 +210,26 @@ export async function run(): Promise<void> {
     default: 'heatmap.html',
   })
 
-  const content = buildHeatmapHtml(data, title)
-  writeHtml(filename, content, theme)
+  const output = heatmap({
+    title,
+    subtitle: optionalText(subtitleRaw),
+    rows: data.rows,
+    columns: data.columns,
+    values: data.values,
+    colorScale,
+    density,
+    showValues,
+    valueFormat,
+    min: parseOptionalFiniteNumber(minRaw),
+    max: parseOptionalFiniteNumber(maxRaw),
+    width: parseOptionalFiniteNumber(widthRaw),
+  })
+
+  const html = toHtmlFile(output, {
+    title: 'VizFlow Heatmap',
+    theme,
+    includeChartJs: false,
+  })
+
+  await writeOutputFile(filename, html, 'Heatmap')
 }

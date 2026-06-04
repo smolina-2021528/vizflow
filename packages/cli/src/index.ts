@@ -5,9 +5,10 @@
 import { select } from '@inquirer/prompts'
 
 const COMMANDS = {
-  chart: '/chart   — Generate a chart from your data',
-  table: '/table   — Generate a table from your data',
-  heatmap: '/heatmap — Generate a heatmap from your data',
+  chart: '/chart      — Generate a chart from your data',
+  table: '/table      — Generate a searchable table from your data',
+  heatmap: '/heatmap    — Generate a heatmap matrix',
+  components: '/components — Generate KPI cards and progress bars',
 } as const
 
 type Command = keyof typeof COMMANDS
@@ -21,6 +22,7 @@ async function main(): Promise<void> {
       { name: COMMANDS.chart, value: 'chart' },
       { name: COMMANDS.table, value: 'table' },
       { name: COMMANDS.heatmap, value: 'heatmap' },
+      { name: COMMANDS.components, value: 'components' },
     ],
   })
 
