@@ -1,49 +1,98 @@
 # 🌊 VizFlow.js
 
-> TypeScript library for generating charts, tables and visualizations — programmatic API, conversational CLI wizard, and CSS theming system.
+TypeScript library for generating charts, tables and dashboard-ready visualizations.
 
-[![npm version](https://img.shields.io/npm/v/@smolina-dev/vizflow-core)](https://www.npmjs.com/package/@smolina-dev/vizflow-core)
-[![license](https://img.shields.io/npm/l/@smolina-dev/vizflow-core)](LICENSE)
-
----
-
-## ✨ Features
-
-- **Bar, Line, Pie and Scatter** charts via Chart.js
-- **HTML tables** with client-side sorting and pagination
-- **Conversational CLI wizard** — no config knowledge required
-- **Built-in themes**: `light`, `dark`, `hot` and `cold`
-- **CSS theming** via custom properties (`--vf-primary`, `--vf-chart-1`, etc.)
-- **Dual package** — ESM + CJS, works in browser and Node.js
-- **Full TypeScript** — typed API for all parameters
-- **External datasources** — load from `.csv` or `.json` files
+VizFlow.js provides a programmatic Core API and a conversational CLI wizard to create clean HTML visualizations from data.
 
 ---
 
-## 📦 Installation
+## Packages
 
-### Core library
+| Package | Description |
+|---|---|
+| `@smolina-dev/vizflow-core` | Core library for charts, tables, dashboard components, themes and output helpers |
+| `@smolina-dev/vizflow-cli` | CLI wizard for generating visualizations from the terminal |
+
+---
+
+## Highlights
+
+- Charts powered by Chart.js:
+  - Bar
+  - Line
+  - Pie
+  - Scatter
+  - Area
+  - Horizontal Bar
+  - Doughnut
+
+- Dashboard components:
+  - Metric Card
+  - Progress Bar
+  - Heatmap
+
+- Enhanced tables:
+  - Search
+  - Sorting
+  - Pagination
+  - Titles and subtitles
+  - Column alignment
+  - Numeric formatting
+  - Compact or comfortable density
+
+- Built-in themes:
+  - `light`
+  - `dark`
+  - `hot`
+  - `cold`
+  - `corporate`
+  - `emerald`
+  - `midnight`
+  - `sunset`
+
+- Data helpers:
+  - CSV parser
+  - JSON parser
+  - Inline data support
+
+- Output helpers:
+  - Standalone HTML files
+  - Embeddable snippets
+
+---
+
+## Installation
+
+### Core
 
 ```bash
 npm install @smolina-dev/vizflow-core
 ```
 
-### CLI wizard
+### CLI
 
 ```bash
 npm install -g @smolina-dev/vizflow-cli
 ```
 
+Or run it directly:
+
+```bash
+npx @smolina-dev/vizflow-cli
+```
+
 ---
 
-## 🚀 Mode 1 — Programmatic API
+## Quick Start
 
 ```ts
-import { barChart } from '@smolina-dev/vizflow-core'
+import { barChart, toHtmlFile } from '@smolina-dev/vizflow-core'
+import { writeFileSync } from 'node:fs'
 
 const output = barChart({
   type: 'bar',
   title: 'Monthly Sales',
+  subtitle: 'Revenue by month',
   xKey: 'month',
   yKey: 'sales',
   data: {
@@ -54,17 +103,27 @@ const output = barChart({
       { month: 'Mar', sales: 1400 },
     ],
   },
+  format: {
+    y: {
+      type: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    },
+  },
 })
 
-const html = output.render()
-console.log(html)
-```
+const html = toHtmlFile(output, {
+  title: 'Sales Dashboard',
+  theme: 'corporate',
+  includeChartJs: true,
+})
 
-> Note: `output.render()` returns an HTML snippet that can include scripts required by the visualization. When using it inside a browser SPA, make sure your mounting strategy executes the generated scripts correctly.
+writeFileSync('sales.html', html)
+```
 
 ---
 
-## Available generators
+## Charts
 
 ```ts
 import {
@@ -72,100 +131,270 @@ import {
   lineChart,
   pieChart,
   scatterChart,
-  table,
+  areaChart,
+  horizontalBarChart,
+  doughnutChart,
 } from '@smolina-dev/vizflow-core'
 ```
 
----
-
-## Standalone HTML file
+### Area Chart
 
 ```ts
-import { writeFileSync } from 'node:fs'
-import { barChart, toHtmlFile } from '@smolina-dev/vizflow-core'
+const output = areaChart({
+  type: 'area',
+  title: 'Revenue Trend',
+  subtitle: 'Quarterly growth',
+  xKey: 'quarter',
+  yKey: 'revenue',
+  data: {
+    kind: 'inline',
+    rows: [
+      { quarter: 'Q1', revenue: 12000 },
+      { quarter: 'Q2', revenue: 18000 },
+      { quarter: 'Q3', revenue: 24000 },
+    ],
+  },
+})
+```
 
-const output = barChart({
-  type: 'bar',
-  title: 'Monthly Sales',
-  xKey: 'month',
+### Horizontal Bar Chart
+
+```ts
+const output = horizontalBarChart({
+  type: 'horizontalBar',
+  title: 'Top Products',
+  xKey: 'product',
   yKey: 'sales',
   data: {
     kind: 'inline',
     rows: [
-      { month: 'Jan', sales: 1200 },
-      { month: 'Feb', sales: 950 },
-      { month: 'Mar', sales: 1400 },
+      { product: 'Product A', sales: 450 },
+      { product: 'Product B', sales: 380 },
+      { product: 'Product C', sales: 290 },
     ],
   },
 })
+```
 
+### Doughnut Chart
+
+```ts
+const output = doughnutChart({
+  type: 'doughnut',
+  title: 'Sales by Channel',
+  xKey: 'channel',
+  yKey: 'sales',
+  data: {
+    kind: 'inline',
+    rows: [
+      { channel: 'Retail', sales: 45 },
+      { channel: 'Online', sales: 30 },
+      { channel: 'Wholesale', sales: 25 },
+    ],
+  },
+})
+```
+
+---
+
+## Dashboard Components
+
+```ts
+import {
+  metricCard,
+  progressBar,
+  heatmap,
+} from '@smolina-dev/vizflow-core'
+```
+
+### Metric Card
+
+```ts
+const output = metricCard({
+  title: 'Total Sales',
+  subtitle: 'Current month',
+  value: 125000,
+  valueFormat: {
+    type: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  },
+  trend: {
+    value: 12.5,
+    direction: 'up',
+    label: 'vs previous month',
+  },
+})
+```
+
+### Progress Bar
+
+```ts
+const output = progressBar({
+  title: 'Goal Completion',
+  subtitle: 'Monthly target',
+  value: 78,
+  max: 100,
+  variant: 'success',
+})
+```
+
+### Heatmap
+
+```ts
+const output = heatmap({
+  title: 'Weekly Activity',
+  subtitle: 'Activity by product and day',
+  rows: ['Product A', 'Product B', 'Product C'],
+  columns: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+  values: [
+    [10, 25, 18, 30, 42],
+    [5, 12, 9, 15, 21],
+    [30, 35, 28, 45, 50],
+  ],
+  colorScale: 'green',
+})
+```
+
+---
+
+## Enhanced Tables
+
+```ts
+import { table } from '@smolina-dev/vizflow-core'
+
+const output = table(
+  {
+    title: 'Customer Ranking',
+    subtitle: 'Sorted by monthly sales',
+    columns: [
+      { key: 'customer', label: 'Customer' },
+      {
+        key: 'sales',
+        label: 'Sales',
+        align: 'right',
+        format: {
+          type: 'currency',
+          currency: 'USD',
+          maximumFractionDigits: 0,
+        },
+      },
+    ],
+    data: {
+      kind: 'inline',
+      rows: [
+        { customer: 'Customer A', sales: 125000 },
+        { customer: 'Customer B', sales: 87500 },
+      ],
+    },
+  },
+  {
+    pageSize: 10,
+    searchable: true,
+    density: 'comfortable',
+  }
+)
+```
+
+---
+
+## Value Formatting
+
+Supported value formats:
+
+| Type | Description |
+|---|---|
+| `number` | Localized number |
+| `currency` | Localized currency |
+| `percent` | Percentage |
+| `compact` | Compact notation such as `1.2K` or `3.4M` |
+
+Example:
+
+```ts
+{
+  type: 'currency',
+  currency: 'GTQ',
+  locale: 'es-GT',
+  maximumFractionDigits: 0,
+}
+```
+
+---
+
+## Output Helpers
+
+### Standalone HTML
+
+```ts
 const html = toHtmlFile(output, {
-  title: 'Sales Dashboard',
-  theme: 'hot',
+  title: 'My Dashboard',
+  theme: 'midnight',
+  includeChartJs: true,
 })
-
-writeFileSync('chart.html', html)
 ```
 
----
+Use `includeChartJs: true` for chart visualizations.
 
-## Embeddable snippet
+Use `includeChartJs: false` for:
+
+- Tables
+- Metric Cards
+- Progress Bars
+- Heatmaps
+
+### Embed Snippet
 
 ```ts
-import { barChart, toEmbedSnippet } from '@smolina-dev/vizflow-core'
+import { toEmbedSnippet } from '@smolina-dev/vizflow-core'
 
-const output = barChart({
-  type: 'bar',
-  title: 'Monthly Sales',
-  xKey: 'month',
-  yKey: 'sales',
-  data: {
-    kind: 'inline',
-    rows: [
-      { month: 'Jan', sales: 1200 },
-      { month: 'Feb', sales: 950 },
-      { month: 'Mar', sales: 1400 },
-    ],
-  },
+const snippet = toEmbedSnippet(output, {
+  includeChartJs: true,
 })
-
-const snippet = toEmbedSnippet(output)
-
-console.log(snippet)
 ```
 
 ---
 
-## 🧙 Mode 2 — CLI Wizard
+## CLI Wizard
 
 ```bash
 npx @smolina-dev/vizflow-cli
 ```
 
-Example flow:
+Available generators:
 
 ```txt
-? What do you want to generate?
-  ❯ /chart   — Generate a chart from your data
-    /table   — Generate a table from your data
-    /heatmap — Generate a heatmap from your data
+/chart       — Generate charts
+/table       — Generate searchable tables
+/heatmap     — Generate heatmaps
+/components  — Generate metric cards and progress bars
 ```
 
-The wizard asks step-by-step questions and generates a ready-to-use `.html` file.
+The CLI supports:
+
+- Manual data entry
+- CSV files
+- JSON files
+- Premium themes
+- Value formatting
+- Table search
+- Heatmap color scales
+- Safe file overwrite confirmation
 
 ---
 
-## Supported data sources
+## CSV Support
 
-| Source | Description |
-|---|---|
-| Manual | Enter rows one by one in the terminal |
-| CSV | Point to a local `.csv` file |
-| JSON | Point to a local `.json` file |
+The CSV parser supports:
 
----
+- Quoted values
+- Commas inside quoted fields
+- Escaped quotes
+- Multiline quoted fields
+- CRLF and LF line endings
+- Boolean, null and numeric inference
 
-## CSV format
+Example:
 
 ```csv
 month,sales
@@ -176,7 +405,7 @@ Mar,1400
 
 ---
 
-## JSON format
+## JSON Support
 
 ```json
 [
@@ -188,243 +417,61 @@ Mar,1400
 
 ---
 
-## 🎨 Mode 3 — CSS Theming
-
-VizFlow includes four built-in themes:
+## Themes
 
 | Theme | Description |
 |---|---|
 | `light` | Clean light interface |
-| `dark` | Dark interface for dashboards |
-| `hot` | Warm, energetic visual palette |
-| `cold` | Cool, calm blue visual palette |
+| `dark` | Dark dashboard interface |
+| `hot` | Warm red/orange palette |
+| `cold` | Cool blue/cyan palette |
+| `corporate` | Professional blue/gray business theme |
+| `emerald` | Growth-focused green theme |
+| `midnight` | Premium dark dashboard theme |
+| `sunset` | Warm presentation-ready theme |
 
 ---
 
-## Use a theme with `toHtmlFile()`
+## Development
 
-```ts
-import { barChart, toHtmlFile } from '@smolina-dev/vizflow-core'
-
-const output = barChart({
-  type: 'bar',
-  title: 'Monthly Sales',
-  xKey: 'month',
-  yKey: 'sales',
-  data: {
-    kind: 'inline',
-    rows: [
-      { month: 'Jan', sales: 1200 },
-      { month: 'Feb', sales: 950 },
-      { month: 'Mar', sales: 1400 },
-    ],
-  },
-})
-
-const html = toHtmlFile(output, {
-  title: 'Sales Dashboard',
-  theme: 'hot',
-})
-```
-
----
-
-## Import built-in theme CSS
-
-```ts
-import '@smolina-dev/vizflow-core/themes/light.css'
-import '@smolina-dev/vizflow-core/themes/dark.css'
-import '@smolina-dev/vizflow-core/themes/hot.css'
-import '@smolina-dev/vizflow-core/themes/cold.css'
-```
-
-You can also load the generated CSS directly in HTML:
-
-```html
-<link rel="stylesheet" href="node_modules/@smolina-dev/vizflow-core/dist/themes/light.css" />
-<link rel="stylesheet" href="node_modules/@smolina-dev/vizflow-core/dist/themes/dark.css" />
-<link rel="stylesheet" href="node_modules/@smolina-dev/vizflow-core/dist/themes/hot.css" />
-<link rel="stylesheet" href="node_modules/@smolina-dev/vizflow-core/dist/themes/cold.css" />
-```
-
----
-
-## Custom theme
-
-```css
-:root {
-  --vf-primary: #10b981;
-  --vf-background: #0f172a;
-  --vf-text: #f1f5f9;
-  --vf-radius: 12px;
-  --vf-font: 'Inter', sans-serif;
-}
-```
-
----
-
-## Available CSS variables
-
-| Variable | Description | Default |
-|---|---|---|
-| `--vf-primary` | Accent color | `#6366f1` |
-| `--vf-on-primary` | Text on primary | `#ffffff` |
-| `--vf-background` | Page background | `#ffffff` |
-| `--vf-surface` | Card background | `#f9fafb` |
-| `--vf-text` | Primary text | `#111827` |
-| `--vf-text-muted` | Secondary text | `#6b7280` |
-| `--vf-border` | Border color | `#e5e7eb` |
-| `--vf-radius` | Border radius | `8px` |
-| `--vf-font` | Font family | `system-ui` |
-| `--vf-chart-1` | First chart series color | Theme value |
-| `--vf-chart-2` | Second chart series color | Theme value |
-| `--vf-chart-3` | Third chart series color | Theme value |
-| `--vf-chart-4` | Fourth chart series color | Theme value |
-| `--vf-chart-5` | Fifth chart series color | Theme value |
-
----
-
-## 📊 Chart Options
-
-### Line Chart
-
-```ts
-import { lineChart } from '@smolina-dev/vizflow-core'
-
-lineChart(config, {
-  fill: true,
-  showPoints: true,
-  tension: 0.3,
-})
-```
-
-### Pie Chart
-
-```ts
-import { pieChart } from '@smolina-dev/vizflow-core'
-
-pieChart(config, {
-  donut: true,
-  cutoutPercent: 60,
-  showPercentages: true,
-})
-```
-
-### Scatter Chart
-
-```ts
-import { scatterChart } from '@smolina-dev/vizflow-core'
-
-scatterChart(config, {
-  pointRadius: 6,
-  xAxisLabel: 'Height (cm)',
-  yAxisLabel: 'Weight (kg)',
-})
-```
-
----
-
-## 📋 Table Options
-
-```ts
-import { table } from '@smolina-dev/vizflow-core'
-
-table(
-  {
-    title: 'Users',
-    columns: [
-      {
-        key: 'name',
-        label: 'Name',
-        sortable: false,
-        width: '240px',
-      },
-      {
-        key: 'email',
-        label: 'Email',
-      },
-    ],
-    data: {
-      kind: 'inline',
-      rows: [
-        { name: 'Ana', email: 'ana@example.com' },
-        { name: 'Luis', email: 'luis@example.com' },
-      ],
-    },
-  },
-  {
-    pageSize: 10,
-  },
-)
-```
-
----
-
-## Disable pagination
-
-Use `pageSize: 0` when you want to render all rows without pagination.
-
-```ts
-table(config, {
-  pageSize: 0,
-})
-```
-
----
-
-## 🗂️ Monorepo structure
-
-```txt
-vizflow/
-├── packages/
-│   ├── core/       # Chart, table generators and parsers
-│   └── cli/        # Conversational CLI wizard
-├── playground/     # Visual demo app
-└── docs/           # Documentation
-```
-
----
-
-## 🛠️ Development
-
-### Install dependencies
+Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-### Run lint
-
-```bash
-pnpm lint
-```
-
-### Build all packages
-
-```bash
-pnpm build
-```
-
-### Run tests
+Run tests:
 
 ```bash
 pnpm test
 ```
 
-### Build only core
+Build all packages:
+
+```bash
+pnpm build
+```
+
+Build core:
 
 ```bash
 pnpm --filter @smolina-dev/vizflow-core build
 ```
 
-### Run CLI in development
+Build CLI:
 
 ```bash
-pnpm --filter @smolina-dev/vizflow-cli dev
+pnpm --filter @smolina-dev/vizflow-cli build
 ```
 
 ---
 
-## 📄 License
+## Changelog
 
-MIT © Alejandro Molina
+See `CHANGELOG.md`.
+
+---
+
+## License
+
+MIT
