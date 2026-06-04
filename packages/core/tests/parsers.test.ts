@@ -32,6 +32,70 @@ describe('parseCsv', () => {
     expect(Object.keys(rows[0])).toEqual(['name', 'value'])
   })
 
+  it('supports comma characters inside quoted fields', () => {
+    const csv = `name,note,value\nAlpha,"Hello, world",10\nBeta,"A, B, C",20`
+
+    const rows = parseCsv(csv)
+
+    expect(rows).toHaveLength(2)
+    expect(rows[0].note).toBe('Hello, world')
+    expect(rows[1].note).toBe('A, B, C')
+  })
+
+  it('supports escaped quotes inside quoted fields', () => {
+    const csv = `name,note\nAlpha,"He said ""hello"" today"`
+
+    const rows = parseCsv(csv)
+
+    expect(rows[0].note).toBe('He said "hello" today')
+  })
+
+  it('supports multiline quoted fields', () => {
+    const csv = `name,note\nAlpha,"Line one\nLine two"\nBeta,"Single line"`
+
+    const rows = parseCsv(csv)
+
+    expect(rows).toHaveLength(2)
+    expect(rows[0].note).toBe('Line one\nLine two')
+    expect(rows[1].note).toBe('Single line')
+  })
+
+  it('supports CRLF line endings', () => {
+    const csv = `name,value\r\nAlpha,10\r\nBeta,20\r\n`
+
+    const rows = parseCsv(csv)
+
+    expect(rows).toHaveLength(2)
+    expect(rows[0].name).toBe('Alpha')
+    expect(rows[1].value).toBe(20)
+  })
+
+  it('ignores blank lines between records', () => {
+    const csv = `name,value\n\nAlpha,10\n\nBeta,20\n`
+
+    const rows = parseCsv(csv)
+
+    expect(rows).toHaveLength(2)
+    expect(rows[0].name).toBe('Alpha')
+    expect(rows[1].name).toBe('Beta')
+  })
+
+  it('preserves intentional spaces inside quoted string fields', () => {
+    const csv = `name,note\nAlpha,"  padded text  "`
+
+    const rows = parseCsv(csv)
+
+    expect(rows[0].note).toBe('  padded text  ')
+  })
+
+  it('still infers quoted numeric values as numbers', () => {
+    const csv = `name,value\nAlpha,"10.5"`
+
+    const rows = parseCsv(csv)
+
+    expect(rows[0].value).toBe(10.5)
+  })
+
   it('rejects empty header names', () => {
     const csv = `name,,value\nAlpha,test,10`
 
@@ -45,6 +109,46 @@ describe('parseCsv', () => {
 
     expect(() => parseCsv(csv)).toThrow(
       '[VizFlow] CSV parser error: Header row contains duplicate column names'
+    )
+  })
+
+  it('rejects rows with too few columns', () => {
+    const csv = `name,value\nAlpha`
+
+    expect(() => parseCsv(csv)).toThrow(
+      '[VizFlow] CSV parser error: Row 1 has 1 columns but header has 2'
+    )
+  })
+
+  it('rejects rows with too many columns', () => {
+    const csv = `name,value\nAlpha,10,extra`
+
+    expect(() => parseCsv(csv)).toThrow(
+      '[VizFlow] CSV parser error: Row 1 has 3 columns but header has 2'
+    )
+  })
+
+  it('rejects unclosed quoted fields', () => {
+    const csv = `name,note\nAlpha,"Unclosed note`
+
+    expect(() => parseCsv(csv)).toThrow(
+      '[VizFlow] CSV parser error: Unclosed quoted field'
+    )
+  })
+
+  it('rejects quotes inside unquoted fields', () => {
+    const csv = `name,note\nAlpha,He said "hello"`
+
+    expect(() => parseCsv(csv)).toThrow(
+      '[VizFlow] CSV parser error: Unexpected quote inside unquoted field'
+    )
+  })
+
+  it('rejects unexpected characters after a closing quote', () => {
+    const csv = `name,note\nAlpha,"hello"x`
+
+    expect(() => parseCsv(csv)).toThrow(
+      '[VizFlow] CSV parser error: Unexpected character after closing quote'
     )
   })
 

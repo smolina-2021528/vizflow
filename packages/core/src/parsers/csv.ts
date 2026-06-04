@@ -1,4 +1,4 @@
-import { DataRow } from '../types/index.js'
+import type { DataRow } from '../types/index.js'
 
 // ─── Errors ───────────────────────────────────────────────────────
 
@@ -9,6 +9,15 @@ export class CsvParseError extends Error {
     this.name = 'CsvParseError'
   }
 }
+
+// ─── Internal types ────────────────────────────────────────────────
+
+interface CsvCell {
+  value: string
+  quoted: boolean
+}
+
+type CsvRecord = CsvCell[]
 
 // ─── Type inference ───────────────────────────────────────────────
 
@@ -29,17 +38,24 @@ function isNonFiniteToken(value: string): boolean {
 
 /**
  * Infers the correct primitive type from a raw CSV string value.
- * Order of inference: null → boolean → finite number → string
+ * Order of inference: null → boolean → finite number → string.
+ *
+ * Quoted string values preserve surrounding spaces when they are not inferred
+ * as null, boolean, or number.
  */
-function inferType(value: string): string | number | boolean | null {
+function inferType(
+  value: string,
+  quoted: boolean
+): string | number | boolean | null {
   const trimmed = value.trim()
+  const normalized = trimmed.toLowerCase()
 
   // Empty string or explicit null → null
-  if (trimmed === '' || trimmed.toLowerCase() === 'null') return null
+  if (trimmed === '' || normalized === 'null') return null
 
   // Boolean inference
-  if (trimmed.toLowerCase() === 'true') return true
-  if (trimmed.toLowerCase() === 'false') return false
+  if (normalized === 'true') return true
+  if (normalized === 'false') return false
 
   // Reject unsafe numeric-like values before they reach chart/table rendering
   if (isNonFiniteToken(trimmed)) {
@@ -58,46 +74,165 @@ function inferType(value: string): string | number | boolean | null {
     return asNumber
   }
 
-  // Default: keep as string
-  return trimmed
+  // Default: keep as string.
+  // Quoted strings preserve intentional spacing; unquoted strings are trimmed.
+  return quoted ? value : trimmed
 }
 
-// ─── Row parser ───────────────────────────────────────────────────
+// ─── Record parser ────────────────────────────────────────────────
+
+function isBlankRecord(record: CsvRecord): boolean {
+  return record.every(cell => !cell.quoted && cell.value.trim().length === 0)
+}
 
 /**
- * Splits a single CSV line into individual cell values.
- * Handles quoted fields that may contain commas inside them.
+ * Parses raw CSV text into records while preserving CSV quoting rules.
  *
- * @param line - A single raw CSV line
- * @returns Array of cell strings
+ * Supports:
+ * - commas inside quoted fields
+ * - escaped quotes using ""
+ * - multiline quoted fields
+ * - CRLF and LF line endings
  */
-function splitLine(line: string): string[] {
-  const cells: string[] = []
+function parseRecords(raw: string): CsvRecord[] {
+  const records: CsvRecord[] = []
+  let record: CsvRecord = []
   let current = ''
+
   let insideQuotes = false
+  let fieldStarted = false
+  let quotedField = false
+  let afterClosingQuote = false
 
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
+  function pushCell(): void {
+    record.push({
+      value: current,
+      quoted: quotedField,
+    })
 
-    if (char === '"') {
-      // Toggle quoted field mode
-      insideQuotes = !insideQuotes
+    current = ''
+    insideQuotes = false
+    fieldStarted = false
+    quotedField = false
+    afterClosingQuote = false
+  }
+
+  function pushRecord(): void {
+    pushCell()
+
+    if (!isBlankRecord(record)) {
+      records.push(record)
+    }
+
+    record = []
+  }
+
+  function consumeNewline(char: string, nextChar: string | undefined): boolean {
+    if (char === '\r' && nextChar === '\n') {
+      return true
+    }
+
+    return false
+  }
+
+  for (let i = 0; i < raw.length; i++) {
+    const char = raw[i]
+    const nextChar = raw[i + 1]
+
+    if (insideQuotes) {
+      if (char === '"') {
+        if (nextChar === '"') {
+          current += '"'
+          i++
+          continue
+        }
+
+        insideQuotes = false
+        afterClosingQuote = true
+        continue
+      }
+
+      if (char === '\r') {
+        if (nextChar === '\n') {
+          current += '\n'
+          i++
+          continue
+        }
+
+        current += '\n'
+        continue
+      }
+
+      current += char
       continue
     }
 
-    if (char === ',' && !insideQuotes) {
-      cells.push(current)
-      current = ''
+    if (afterClosingQuote) {
+      if (char === ',') {
+        pushCell()
+        continue
+      }
+
+      if (char === '\n' || char === '\r') {
+        if (consumeNewline(char, nextChar)) {
+          i++
+        }
+
+        pushRecord()
+        continue
+      }
+
+      if (/\s/.test(char)) {
+        continue
+      }
+
+      throw new CsvParseError('Unexpected character after closing quote')
+    }
+
+    if (char === '"') {
+      if (!fieldStarted || current.trim().length === 0) {
+        current = ''
+        insideQuotes = true
+        fieldStarted = true
+        quotedField = true
+        continue
+      }
+
+      throw new CsvParseError('Unexpected quote inside unquoted field')
+    }
+
+    if (char === ',') {
+      pushCell()
+      continue
+    }
+
+    if (char === '\n' || char === '\r') {
+      if (consumeNewline(char, nextChar)) {
+        i++
+      }
+
+      pushRecord()
       continue
     }
 
     current += char
+    fieldStarted = true
   }
 
-  // Push the last cell
-  cells.push(current)
+  if (insideQuotes) {
+    throw new CsvParseError('Unclosed quoted field')
+  }
 
-  return cells
+  if (
+    record.length > 0 ||
+    current.length > 0 ||
+    fieldStarted ||
+    afterClosingQuote
+  ) {
+    pushRecord()
+  }
+
+  return records
 }
 
 // ─── Main parser ──────────────────────────────────────────────────
@@ -113,24 +248,20 @@ function splitLine(line: string): string[] {
  */
 export function parseCsv(raw: string): DataRow[] {
   const normalizedRaw = raw.replace(/^\uFEFF/, '')
+  const records = parseRecords(normalizedRaw)
 
-  const lines = normalizedRaw
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
-
-  if (lines.length === 0) {
+  if (records.length === 0) {
     throw new CsvParseError('Input is empty')
   }
 
-  if (lines.length < 2) {
+  if (records.length < 2) {
     throw new CsvParseError(
       'CSV must have at least one header row and one data row'
     )
   }
 
-  // First line is always the header
-  const headers = splitLine(lines[0]).map(header => header.trim())
+  // First record is always the header
+  const headers = records[0].map(cell => cell.value.trim())
 
   if (headers.length === 0) {
     throw new CsvParseError('Header row is empty')
@@ -147,19 +278,18 @@ export function parseCsv(raw: string): DataRow[] {
   }
 
   // Parse each data row
-  return lines.slice(1).map((line, index) => {
-    const cells = splitLine(line)
-
-    if (cells.length !== headers.length) {
+  return records.slice(1).map((record, index) => {
+    if (record.length !== headers.length) {
       throw new CsvParseError(
-        `Row ${index + 1} has ${cells.length} columns but header has ${headers.length}`
+        `Row ${index + 1} has ${record.length} columns but header has ${headers.length}`
       )
     }
 
     const row: DataRow = {}
 
     headers.forEach((header, i) => {
-      row[header] = inferType(cells[i])
+      const cell = record[i]
+      row[header] = inferType(cell.value, cell.quoted)
     })
 
     return row
