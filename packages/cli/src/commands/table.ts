@@ -1,15 +1,8 @@
 // ─── /table wizard ───────────────────────────────────────────────
 
 import { confirm, input, select } from '@inquirer/prompts'
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
 
-import {
-  parseCsv,
-  parseJson,
-  table,
-  toHtmlFile,
-} from '@smolina-dev/vizflow-core'
+import { table, toHtmlFile } from '@smolina-dev/vizflow-core'
 import type {
   ColumnDef,
   DataRow,
@@ -18,6 +11,7 @@ import type {
 } from '@smolina-dev/vizflow-core'
 import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
 
+import { collectStructuredDataRows } from '../utils/data.js'
 import {
   parseNonNegativeIntegerOrDefault,
   parseTableCell,
@@ -48,46 +42,6 @@ function inferAlignment(rows: DataRow[], key: string): ColumnDef['align'] {
   )?.[key]
 
   return typeof firstValue === 'number' ? 'right' : 'left'
-}
-
-// ─── Data loaders ─────────────────────────────────────────────────
-
-async function collectCsvRows(): Promise<DataRow[]> {
-  const filePath = await input({
-    message: 'Path to CSV file:',
-    default: './data.csv',
-  })
-
-  const absolutePath = resolve(process.cwd(), filePath)
-
-  try {
-    const raw = readFileSync(absolutePath, 'utf-8')
-    const rows = parseCsv(raw)
-    console.log(`\n✅ Loaded ${rows.length} rows from ${absolutePath}\n`)
-    return rows
-  } catch (err) {
-    console.error(`\n❌ Could not read file: ${absolutePath}\n`)
-    throw err
-  }
-}
-
-async function collectJsonRows(): Promise<DataRow[]> {
-  const filePath = await input({
-    message: 'Path to JSON file:',
-    default: './data.json',
-  })
-
-  const absolutePath = resolve(process.cwd(), filePath)
-
-  try {
-    const raw = readFileSync(absolutePath, 'utf-8')
-    const rows = parseJson(raw)
-    console.log(`\n✅ Loaded ${rows.length} rows from ${absolutePath}\n`)
-    return rows
-  } catch (err) {
-    console.error(`\n❌ Could not read file: ${absolutePath}\n`)
-    throw err
-  }
 }
 
 // ─── Column builder ───────────────────────────────────────────────
@@ -257,7 +211,7 @@ export async function run(): Promise<void> {
   })
 
   let columns: ColumnDef[]
-  let rows: DataRow[]
+  let rows: DataRow[] | undefined
 
   if (sourceType === 'manual') {
     columns = await collectManualColumns()
@@ -269,10 +223,14 @@ export async function run(): Promise<void> {
 
     rows = await collectRows(columns)
   } else {
-    rows =
-      sourceType === 'csv' ? await collectCsvRows() : await collectJsonRows()
+    rows = await collectStructuredDataRows({
+      kind: sourceType,
+      defaultPath: sourceType === 'csv' ? './data.csv' : './data.json',
+      promptMessage:
+        sourceType === 'csv' ? 'Path to CSV file:' : 'Path to JSON file:',
+    })
 
-    if (rows.length === 0) {
+    if (!rows || rows.length === 0) {
       console.log('\n⚠ No data loaded — aborting.\n')
       return
     }
@@ -285,7 +243,7 @@ export async function run(): Promise<void> {
     return
   }
 
-  if (rows.length === 0) {
+  if (!rows || rows.length === 0) {
     console.log('\n⚠ No data entered — aborting.\n')
     return
   }
