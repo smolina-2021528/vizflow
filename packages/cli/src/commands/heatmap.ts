@@ -7,27 +7,15 @@ import type {
   HeatmapColorScale,
   HeatmapConfig,
   HeatmapDensity,
-  ValueFormatOptions,
 } from '@smolina-dev/vizflow-core'
 import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
 
-import { parseFiniteNumber, parseFiniteNumberOrDefault } from '../utils/number.js'
+import {
+  parseFiniteNumber,
+  parseFiniteNumberOrDefault,
+} from '../utils/number.js'
 import { writeOutputFile } from '../utils/output.js'
-
-// ─── Choices ──────────────────────────────────────────────────────
-
-const themeChoices: { name: string; value: BuiltInThemeName }[] = [
-  { name: 'Light — clean default', value: 'light' },
-  { name: 'Dark — dark dashboard', value: 'dark' },
-  { name: 'Hot — warm red/orange', value: 'hot' },
-  { name: 'Cold — cool blue/cyan', value: 'cold' },
-  { name: 'Corporate — professional blue/gray', value: 'corporate' },
-  { name: 'Emerald — growth-focused green', value: 'emerald' },
-  { name: 'Midnight — premium dark', value: 'midnight' },
-  { name: 'Sunset — warm presentation style', value: 'sunset' },
-]
-
-type CliFormatType = 'none' | 'number' | 'currency' | 'percent' | 'compact'
+import { collectValueFormat, themeChoices } from '../utils/shared.js'
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -41,58 +29,9 @@ function parseOptionalFiniteNumber(value: string): number | undefined {
   return parsed === null ? undefined : parsed
 }
 
-async function collectValueFormat(): Promise<ValueFormatOptions | undefined> {
-  const type = await select<CliFormatType>({
-    message: 'Cell value format?',
-    choices: [
-      { name: 'None / default number', value: 'none' },
-      { name: 'Number', value: 'number' },
-      { name: 'Currency', value: 'currency' },
-      { name: 'Percent', value: 'percent' },
-      { name: 'Compact number', value: 'compact' },
-    ],
-  })
-
-  if (type === 'none') {
-    return undefined
-  }
-
-  const locale = await input({
-    message: 'Locale?',
-    default: 'en-US',
-  })
-
-  const maximumFractionDigitsRaw = await input({
-    message: 'Maximum fraction digits?',
-    default: type === 'currency' ? '0' : '1',
-  })
-
-  const maximumFractionDigits = parseOptionalFiniteNumber(
-    maximumFractionDigitsRaw
-  )
-
-  if (type === 'currency') {
-    const currency = await input({
-      message: 'Currency code?',
-      default: 'USD',
-    })
-
-    return {
-      type,
-      locale,
-      currency,
-      maximumFractionDigits,
-    }
-  }
-
-  return {
-    type,
-    locale,
-    maximumFractionDigits,
-  }
-}
-
-async function collectHeatmapData(): Promise<Pick<HeatmapConfig, 'rows' | 'columns' | 'values'>> {
+async function collectHeatmapData(): Promise<
+  Pick<HeatmapConfig, 'rows' | 'columns' | 'values'>
+> {
   const colRaw = await input({
     message: 'Column labels (comma-separated):',
     default: 'Mon,Tue,Wed,Thu,Fri',
@@ -183,7 +122,9 @@ export async function run(): Promise<void> {
     default: true,
   })
 
-  const valueFormat = await collectValueFormat()
+  const valueFormat = await collectValueFormat({
+    message: 'Cell value format?',
+  })
 
   const minRaw = await input({
     message: 'Custom min value? (leave blank for automatic)',

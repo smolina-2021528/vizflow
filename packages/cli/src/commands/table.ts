@@ -15,7 +15,6 @@ import type {
   DataRow,
   TableConfig,
   TableDensity,
-  ValueFormatOptions,
 } from '@smolina-dev/vizflow-core'
 import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
 
@@ -24,22 +23,9 @@ import {
   parseTableCell,
 } from '../utils/number.js'
 import { writeOutputFile } from '../utils/output.js'
-
-// ─── Choices ──────────────────────────────────────────────────────
-
-const themeChoices: { name: string; value: BuiltInThemeName }[] = [
-  { name: 'Light — clean default', value: 'light' },
-  { name: 'Dark — dark dashboard', value: 'dark' },
-  { name: 'Hot — warm red/orange', value: 'hot' },
-  { name: 'Cold — cool blue/cyan', value: 'cold' },
-  { name: 'Corporate — professional blue/gray', value: 'corporate' },
-  { name: 'Emerald — growth-focused green', value: 'emerald' },
-  { name: 'Midnight — premium dark', value: 'midnight' },
-  { name: 'Sunset — warm presentation style', value: 'sunset' },
-]
+import { collectValueFormat, themeChoices } from '../utils/shared.js'
 
 type CliDataSource = 'manual' | 'csv' | 'json'
-type CliFormatType = 'none' | 'number' | 'currency' | 'percent' | 'compact'
 
 // ─── Shared helpers ───────────────────────────────────────────────
 
@@ -57,64 +43,11 @@ function toTitleLabel(value: string): string {
 }
 
 function inferAlignment(rows: DataRow[], key: string): ColumnDef['align'] {
-  const firstValue = rows.find(row => row[key] !== null && row[key] !== undefined)?.[
-    key
-  ]
+  const firstValue = rows.find(
+    row => row[key] !== null && row[key] !== undefined
+  )?.[key]
 
   return typeof firstValue === 'number' ? 'right' : 'left'
-}
-
-async function collectValueFormat(): Promise<ValueFormatOptions | undefined> {
-  const type = await select<CliFormatType>({
-    message: 'Column format?',
-    choices: [
-      { name: 'None', value: 'none' },
-      { name: 'Number', value: 'number' },
-      { name: 'Currency', value: 'currency' },
-      { name: 'Percent', value: 'percent' },
-      { name: 'Compact number', value: 'compact' },
-    ],
-  })
-
-  if (type === 'none') {
-    return undefined
-  }
-
-  const locale = await input({
-    message: 'Locale?',
-    default: 'en-US',
-  })
-
-  const maximumFractionDigitsRaw = await input({
-    message: 'Maximum fraction digits?',
-    default: type === 'currency' ? '0' : '1',
-  })
-
-  const maximumFractionDigits = Number(maximumFractionDigitsRaw)
-
-  if (type === 'currency') {
-    const currency = await input({
-      message: 'Currency code?',
-      default: 'USD',
-    })
-
-    return {
-      type,
-      locale,
-      currency,
-      maximumFractionDigits: Number.isFinite(maximumFractionDigits)
-        ? maximumFractionDigits
-        : undefined,
-    }
-  }
-
-  return {
-    type,
-    locale,
-    maximumFractionDigits: Number.isFinite(maximumFractionDigits)
-      ? maximumFractionDigits
-      : undefined,
-  }
 }
 
 // ─── Data loaders ─────────────────────────────────────────────────
@@ -189,7 +122,12 @@ async function collectColumnOptions(
     default: align === 'right',
   })
 
-  const format = useFormat ? await collectValueFormat() : undefined
+  const format = useFormat
+    ? await collectValueFormat({
+        message: 'Column format?',
+        noneLabel: 'None',
+      })
+    : undefined
 
   const widthRaw = await input({
     message: `Width for "${label}"? (leave blank for auto)`,
@@ -283,7 +221,11 @@ async function inferColumnsFromRows(rows: DataRow[]): Promise<ColumnDef[]> {
     }
 
     columns.push(
-      await collectColumnOptions(key, toTitleLabel(key), inferAlignment(rows, key))
+      await collectColumnOptions(
+        key,
+        toTitleLabel(key),
+        inferAlignment(rows, key)
+      )
     )
   }
 
@@ -327,7 +269,8 @@ export async function run(): Promise<void> {
 
     rows = await collectRows(columns)
   } else {
-    rows = sourceType === 'csv' ? await collectCsvRows() : await collectJsonRows()
+    rows =
+      sourceType === 'csv' ? await collectCsvRows() : await collectJsonRows()
 
     if (rows.length === 0) {
       console.log('\n⚠ No data loaded — aborting.\n')

@@ -2,11 +2,7 @@
 
 import { confirm, input, select } from '@inquirer/prompts'
 
-import {
-  metricCard,
-  progressBar,
-  toHtmlFile,
-} from '@smolina-dev/vizflow-core'
+import { metricCard, progressBar, toHtmlFile } from '@smolina-dev/vizflow-core'
 import type {
   MetricTrendDirection,
   ProgressBarSize,
@@ -15,24 +11,14 @@ import type {
 } from '@smolina-dev/vizflow-core'
 import type { BuiltInThemeName } from '@smolina-dev/vizflow-core'
 
-import { parseFiniteNumber, parseFiniteNumberOrDefault } from '../utils/number.js'
+import {
+  parseFiniteNumber,
+  parseFiniteNumberOrDefault,
+} from '../utils/number.js'
 import { writeOutputFile } from '../utils/output.js'
-
-// ─── Choices ──────────────────────────────────────────────────────
-
-const themeChoices: { name: string; value: BuiltInThemeName }[] = [
-  { name: 'Light — clean default', value: 'light' },
-  { name: 'Dark — dark dashboard', value: 'dark' },
-  { name: 'Hot — warm red/orange', value: 'hot' },
-  { name: 'Cold — cool blue/cyan', value: 'cold' },
-  { name: 'Corporate — professional blue/gray', value: 'corporate' },
-  { name: 'Emerald — growth-focused green', value: 'emerald' },
-  { name: 'Midnight — premium dark', value: 'midnight' },
-  { name: 'Sunset — warm presentation style', value: 'sunset' },
-]
+import { collectValueFormat, themeChoices } from '../utils/shared.js'
 
 type ComponentType = 'metricCard' | 'progressBar'
-type CliFormatType = 'none' | 'number' | 'currency' | 'percent' | 'compact'
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -48,59 +34,6 @@ function parseRequiredNumber(raw: string, fallback: number): number {
 function parseOptionalFiniteNumber(value: string): number | undefined {
   const parsed = parseFiniteNumber(value)
   return parsed === null ? undefined : parsed
-}
-
-async function collectValueFormat(
-  message: string
-): Promise<ValueFormatOptions | undefined> {
-  const type = await select<CliFormatType>({
-    message,
-    choices: [
-      { name: 'None / default number', value: 'none' },
-      { name: 'Number', value: 'number' },
-      { name: 'Currency', value: 'currency' },
-      { name: 'Percent', value: 'percent' },
-      { name: 'Compact number', value: 'compact' },
-    ],
-  })
-
-  if (type === 'none') {
-    return undefined
-  }
-
-  const locale = await input({
-    message: 'Locale?',
-    default: 'en-US',
-  })
-
-  const maximumFractionDigitsRaw = await input({
-    message: 'Maximum fraction digits?',
-    default: type === 'currency' ? '0' : '1',
-  })
-
-  const maximumFractionDigits = parseOptionalFiniteNumber(
-    maximumFractionDigitsRaw
-  )
-
-  if (type === 'currency') {
-    const currency = await input({
-      message: 'Currency code?',
-      default: 'USD',
-    })
-
-    return {
-      type,
-      locale,
-      currency,
-      maximumFractionDigits,
-    }
-  }
-
-  return {
-    type,
-    locale,
-    maximumFractionDigits,
-  }
 }
 
 async function collectThemeAndFilename(defaultFilename: string): Promise<{
@@ -142,7 +75,9 @@ async function runMetricCardWizard(): Promise<void> {
 
   const value = parseRequiredNumber(valueRaw, 125000)
 
-  const valueFormat = await collectValueFormat('Metric value format?')
+  const valueFormat = await collectValueFormat({
+    message: 'Metric value format?',
+  })
 
   const addTrend = await confirm({
     message: 'Add trend indicator?',
@@ -248,7 +183,9 @@ async function runProgressBarWizard(): Promise<void> {
     default: '100',
   })
 
-  const valueFormat = await collectValueFormat('Progress value format?')
+  const valueFormat = await collectValueFormat({
+    message: 'Progress value format?',
+  })
 
   const variant = await select<ProgressBarVariant>({
     message: 'Progress variant?',
