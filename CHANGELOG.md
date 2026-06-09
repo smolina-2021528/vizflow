@@ -6,6 +6,26 @@ This project follows semantic versioning.
 
 ---
 
+## 1.2.1 — CLI Internal Cleanup Patch
+
+### Refactored
+
+- Centralized duplicated CLI theme choices into `packages/cli/src/utils/shared.ts`.
+- Centralized duplicated CLI value format prompt logic into `collectValueFormat()`.
+- Updated chart, table, heatmap and component wizards to reuse the shared prompt utilities.
+- Reduced repeated prompt code across CLI commands to make future theme additions safer and easier to maintain.
+
+### Fixed
+
+- Added reusable structured data loading helper for CLI imports.
+- Added retry flow when CSV parsing fails in the chart wizard.
+- Added retry flow when JSON parsing fails in the chart wizard.
+- Added retry flow when CSV parsing fails in the table wizard.
+- Added retry flow when JSON parsing fails in the table wizard.
+- Prevented malformed CSV/JSON imports from immediately terminating the CLI wizard flow.
+
+---
+
 ## 1.2.0 — Visual Experience Update
 
 ### Added
