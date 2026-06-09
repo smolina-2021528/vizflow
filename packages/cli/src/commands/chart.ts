@@ -1,8 +1,6 @@
 // ─── /chart wizard ───────────────────────────────────────────────
 
 import { confirm, input, select } from '@inquirer/prompts'
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
 
 import {
   areaChart,
@@ -10,8 +8,6 @@ import {
   doughnutChart,
   horizontalBarChart,
   lineChart,
-  parseCsv,
-  parseJson,
   pieChart,
   scatterChart,
   toHtmlFile,
@@ -32,6 +28,7 @@ import type {
   ScatterChartOptions,
 } from '@smolina-dev/vizflow-core'
 
+import { collectStructuredDataRows } from '../utils/data.js'
 import { parseFiniteNumber } from '../utils/number.js'
 import { writeOutputFile } from '../utils/output.js'
 import { collectValueFormat, themeChoices } from '../utils/shared.js'
@@ -135,48 +132,6 @@ async function collectManualRows(
   }
 
   return rows
-}
-
-// ─── CSV data entry ───────────────────────────────────────────────
-
-async function collectCsvRows(): Promise<DataRow[]> {
-  const filePath = await input({
-    message: 'Path to CSV file:',
-    default: './data.csv',
-  })
-
-  const absolutePath = resolve(process.cwd(), filePath)
-
-  try {
-    const raw = readFileSync(absolutePath, 'utf-8')
-    const rows = parseCsv(raw)
-    console.log(`\n✅ Loaded ${rows.length} rows from ${absolutePath}\n`)
-    return rows
-  } catch (err) {
-    console.error(`\n❌ Could not read file: ${absolutePath}\n`)
-    throw err
-  }
-}
-
-// ─── JSON data entry ──────────────────────────────────────────────
-
-async function collectJsonRows(): Promise<DataRow[]> {
-  const filePath = await input({
-    message: 'Path to JSON file:',
-    default: './data.json',
-  })
-
-  const absolutePath = resolve(process.cwd(), filePath)
-
-  try {
-    const raw = readFileSync(absolutePath, 'utf-8')
-    const rows = parseJson(raw)
-    console.log(`\n✅ Loaded ${rows.length} rows from ${absolutePath}\n`)
-    return rows
-  } catch (err) {
-    console.error(`\n❌ Could not read file: ${absolutePath}\n`)
-    throw err
-  }
 }
 
 // ─── Chart-specific options ───────────────────────────────────────
@@ -375,17 +330,25 @@ export async function run(): Promise<void> {
     ],
   })
 
-  let rows: DataRow[]
+  let rows: DataRow[] | undefined
 
   if (sourceType === 'csv') {
-    rows = await collectCsvRows()
+    rows = await collectStructuredDataRows({
+      kind: 'csv',
+      defaultPath: './data.csv',
+      promptMessage: 'Path to CSV file:',
+    })
   } else if (sourceType === 'json') {
-    rows = await collectJsonRows()
+    rows = await collectStructuredDataRows({
+      kind: 'json',
+      defaultPath: './data.json',
+      promptMessage: 'Path to JSON file:',
+    })
   } else {
     rows = await collectManualRows(xKey, yKey, type === 'scatter')
   }
 
-  if (rows.length === 0) {
+  if (!rows || rows.length === 0) {
     console.log('\n⚠ No data entered — aborting.\n')
     return
   }
