@@ -20,6 +20,7 @@ export type ThemeName =
   | 'midnight'
   | 'sunset'
   | 'ocean'
+  | 'rose'
   | 'custom'
 
 export interface CustomTheme {
@@ -82,7 +83,7 @@ export interface ChartFormatOptions {
    */
   x?: ValueFormatOptions
   /**
-   * Formatter for Y axis values.
+   * Formatter for Y axis values and chart scales.
    */
   y?: ValueFormatOptions
   /**
@@ -102,20 +103,22 @@ export type ChartType =
   | 'horizontalBar'
   | 'doughnut'
 
-export type ChartRounded = 'sm' | 'md' | 'lg' | 'xl' | 'none'
+export type ChartRounded = 'none' | 'sm' | 'md' | 'lg' | 'xl'
 
 export interface ChartAppearance {
   /**
-   * Whether the chart should be rendered inside a visual card container.
-   * Defaults to true in most chart renderers.
+   * Render the chart inside a dashboard-style card.
+   * Defaults to true.
    */
   card?: boolean
   /**
-   * Whether the card should have a subtle shadow.
+   * Add a soft shadow to the chart card.
+   * Defaults to true when card is enabled.
    */
   shadow?: boolean
   /**
-   * Border radius size for the visual card.
+   * Border radius style for the chart card.
+   * Defaults to 'lg'.
    */
   rounded?: ChartRounded
 }
@@ -124,41 +127,69 @@ export interface ChartConfig {
   type: ChartType
   title?: string
   subtitle?: string
+  data: DataSource
+  /** Key from DataRow used as the X axis */
   xKey: string
+  /** Key from DataRow used as the Y axis */
   yKey: string
+  theme?: Theme
   width?: number
   height?: number
-  data: DataSource
-  theme?: Theme
-  format?: ChartFormatOptions
   appearance?: ChartAppearance
+  format?: ChartFormatOptions
 }
 
-// ─── Component types ──────────────────────────────────────────────
+// ─── Dashboard component types ────────────────────────────────────
 
 export interface ComponentAppearance {
+  /**
+   * Render the component as a dashboard-style card.
+   * Defaults to true.
+   */
   card?: boolean
+  /**
+   * Add a soft shadow to the component card.
+   * Defaults to true when card is enabled.
+   */
   shadow?: boolean
+  /**
+   * Border radius style for the component card.
+   * Defaults to 'lg'.
+   */
   rounded?: ChartRounded
 }
 
 export type MetricTrendDirection = 'up' | 'down' | 'neutral'
 
 export interface MetricTrend {
+  /**
+   * Trend value.
+   * By default, metricCard renders this as a percentage-style number, e.g. +12.5%.
+   */
   value: number
+  /**
+   * Visual direction. If omitted, VizFlow infers it from the value.
+   */
   direction?: MetricTrendDirection
+  /**
+   * Text shown after the trend value.
+   * Example: 'vs previous month'
+   */
   label?: string
+  /**
+   * Custom formatter for the trend value.
+   */
   format?: ValueFormatOptions
 }
 
 export interface MetricCardConfig {
   title: string
-  subtitle?: string
   value: number
-  valueFormat?: ValueFormatOptions
-  trend?: MetricTrend
+  subtitle?: string
   footer?: string
   width?: number
+  valueFormat?: ValueFormatOptions
+  trend?: MetricTrend
   appearance?: ComponentAppearance
 }
 
@@ -173,68 +204,103 @@ export type ProgressBarSize = 'sm' | 'md' | 'lg'
 
 export interface ProgressBarConfig {
   title: string
-  subtitle?: string
   value: number
   max?: number
+  subtitle?: string
+  width?: number
   valueFormat?: ValueFormatOptions
-  variant?: ProgressBarVariant
-  size?: ProgressBarSize
+  percentageFormat?: ValueFormatOptions
   showValue?: boolean
   showPercentage?: boolean
-  width?: number
+  variant?: ProgressBarVariant
+  size?: ProgressBarSize
   appearance?: ComponentAppearance
 }
 
 // ─── Heatmap types ────────────────────────────────────────────────
 
-export type HeatmapColorScale = 'blue' | 'green' | 'purple' | 'orange' | 'gray'
+export type HeatmapColorScale =
+  | 'blue'
+  | 'green'
+  | 'purple'
+  | 'orange'
+  | 'gray'
 
-export type HeatmapDensity = 'comfortable' | 'compact'
+export type HeatmapDensity = 'compact' | 'comfortable'
 
 export interface HeatmapConfig {
-  title?: string
+  title: string
   subtitle?: string
+  /**
+   * Row labels displayed on the left side of the heatmap.
+   */
   rows: string[]
+  /**
+   * Column labels displayed at the top of the heatmap.
+   */
   columns: string[]
+  /**
+   * Matrix of values. Each inner array represents one row.
+   */
   values: number[][]
+  width?: number
+  /**
+   * Optional minimum value used to calculate color intensity.
+   * If omitted, VizFlow uses the lowest value in the matrix.
+   */
+  min?: number
+  /**
+   * Optional maximum value used to calculate color intensity.
+   * If omitted, VizFlow uses the highest value in the matrix.
+   */
+  max?: number
+  valueFormat?: ValueFormatOptions
   colorScale?: HeatmapColorScale
   density?: HeatmapDensity
   showValues?: boolean
-  valueFormat?: ValueFormatOptions
-  min?: number
-  max?: number
-  width?: number
+  appearance?: ComponentAppearance
 }
 
 // ─── Table types ──────────────────────────────────────────────────
 
 export type TableColumnAlign = 'left' | 'center' | 'right'
-
-export type TableDensity = 'comfortable' | 'compact'
+export type TableDensity = 'compact' | 'comfortable'
 
 export interface ColumnDef {
+  /** Key from DataRow */
   key: string
+  /** Visible label shown in the table header */
   label: string
   sortable?: boolean
-  align?: TableColumnAlign
-  format?: ValueFormatOptions
   width?: string
+  /**
+   * Text alignment for this column.
+   * Defaults to left.
+   */
+  align?: TableColumnAlign
+  /**
+   * Optional value formatter for numeric cells.
+   */
+  format?: ValueFormatOptions
 }
 
 export interface TableConfig {
   title?: string
   subtitle?: string
-  columns: ColumnDef[]
   data: DataSource
+  columns: ColumnDef[]
   theme?: Theme
+  pageSize?: number
 }
 
-// ─── Output contract ──────────────────────────────────────────────
+// ─── Library output ───────────────────────────────────────────────
 
+/** Returned by every VizFlow generator */
 export interface VizFlowOutput {
-  id: string
-  kind: string
+  /** HTML ready to be inserted into the DOM */
   html: string
-  script?: string
-  render(): string
+  /** Scoped CSS for this element */
+  css: string
+  /** Renders html + css together as a single complete string */
+  render: () => string
 }

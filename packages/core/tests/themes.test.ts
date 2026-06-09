@@ -37,4 +37,12 @@ describe('buildThemeStyle', () => {
     expect(css).toContain('--vf-background:#04111f')
     expect(css).toContain('--vf-chart-2:#14b8a6')
   })
+
+  it('supports the rose theme', () => {
+    const css = buildThemeStyle('rose')
+
+    expect(css).toContain('--vf-primary:#f43f5e')
+    expect(css).toContain('--vf-background:#fff1f2')
+    expect(css).toContain('--vf-chart-5:#881337')
+  })
 })

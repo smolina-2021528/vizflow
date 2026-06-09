@@ -1,0 +1,26 @@
+/* VizFlow.js — Rose theme
+   Import this file once to apply an elegant rose and crimson presentation theme to all VizFlow components */
+
+:root {
+  --vf-primary: #f43f5e;
+  --vf-on-primary: #ffffff;
+
+  --vf-background: #fff1f2;
+  --vf-surface: #ffffff;
+
+  --vf-text: #4c0519;
+  --vf-text-muted: #9f1239;
+
+  --vf-border: #fecdd3;
+  --vf-row-alt: #ffe4e6;
+  --vf-row-hover: #fecdd3;
+
+  --vf-radius: 12px;
+  --vf-font: 'Inter', system-ui, sans-serif;
+
+  --vf-chart-1: #f43f5e;
+  --vf-chart-2: #be123c;
+  --vf-chart-3: #ec4899;
+  --vf-chart-4: #fb7185;
+  --vf-chart-5: #881337;
+}
