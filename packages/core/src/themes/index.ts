@@ -151,6 +151,24 @@ const themeStyles: Record<BuiltInThemeName, string> = {
   --vf-chart-4:#ef4444;
   --vf-chart-5:#a855f7;
 }`,
+  ocean: `:root{
+  --vf-primary:#38bdf8;
+  --vf-on-primary:#082f49;
+  --vf-background:#04111f;
+  --vf-surface:#0b2538;
+  --vf-text:#e0f2fe;
+  --vf-text-muted:#7dd3fc;
+  --vf-border:#164e63;
+  --vf-row-alt:#0c344d;
+  --vf-row-hover:#075985;
+  --vf-radius:12px;
+  --vf-font:system-ui,sans-serif;
+  --vf-chart-1:#38bdf8;
+  --vf-chart-2:#14b8a6;
+  --vf-chart-3:#0ea5e9;
+  --vf-chart-4:#2563eb;
+  --vf-chart-5:#67e8f9;
+}`,
 }
 
 /**

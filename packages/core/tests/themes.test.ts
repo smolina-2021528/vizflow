@@ -29,4 +29,12 @@ describe('buildThemeStyle', () => {
     expect(css).toContain('--vf-primary:#f97316')
     expect(css).toContain('--vf-chart-5:#a855f7')
   })
+
+  it('supports the ocean theme', () => {
+    const css = buildThemeStyle('ocean')
+
+    expect(css).toContain('--vf-primary:#38bdf8')
+    expect(css).toContain('--vf-background:#04111f')
+    expect(css).toContain('--vf-chart-2:#14b8a6')
+  })
 })
