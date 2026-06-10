@@ -20,6 +20,9 @@ export const themeChoices: { name: string; value: BuiltInThemeName }[] = [
   { name: 'Emerald — growth-focused green', value: 'emerald' },
   { name: 'Midnight — premium dark', value: 'midnight' },
   { name: 'Sunset — warm presentation style', value: 'sunset' },
+  { name: 'Ocean — deep marine analytics', value: 'ocean' },
+  { name: 'Rose — elegant rose/crimson', value: 'rose' },
+  { name: 'Forest — earthy dark green', value: 'forest' },
 ]
 
 // ─── Value format prompt ──────────────────────────────────────────
