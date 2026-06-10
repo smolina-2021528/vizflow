@@ -45,4 +45,12 @@ describe('buildThemeStyle', () => {
     expect(css).toContain('--vf-background:#fff1f2')
     expect(css).toContain('--vf-chart-5:#881337')
   })
+
+  it('supports the forest theme', () => {
+    const css = buildThemeStyle('forest')
+
+    expect(css).toContain('--vf-primary:#22c55e')
+    expect(css).toContain('--vf-background:#07130d')
+    expect(css).toContain('--vf-chart-5:#a3e635')
+  })
 })

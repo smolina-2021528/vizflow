@@ -21,6 +21,7 @@ export type ThemeName =
   | 'sunset'
   | 'ocean'
   | 'rose'
+  | 'forest'
   | 'custom'
 
 export interface CustomTheme {
