@@ -1,0 +1,50 @@
+{
+  "name": "@smolina-dev/vizflow-studio",
+  "version": "1.4.0",
+  "description": "Local browser-based Studio for generating VizFlow.js visualizations",
+  "license": "MIT",
+  "author": "Alejandro Molina",
+  "homepage": "https://github.com/smolina-2021528/vizflow#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smolina-2021528/vizflow.git",
+    "directory": "packages/studio"
+  },
+  "bugs": {
+    "url": "https://github.com/smolina-2021528/vizflow/issues"
+  },
+  "keywords": [
+    "vizflow",
+    "studio",
+    "gui",
+    "charts",
+    "tables",
+    "visualization",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "bin": {
+    "vizflow-studio": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "public"
+  ],
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "lint": "eslint src",
+    "test": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@smolina-dev/vizflow-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
