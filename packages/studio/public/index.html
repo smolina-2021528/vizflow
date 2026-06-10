@@ -4,42 +4,121 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VizFlow Studio</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="/app.js" defer></script>
   </head>
 
   <body>
     <main class="studio-shell">
-      <section class="hero">
-        <p class="eyebrow">VizFlow Studio</p>
-        <h1>Generate visualizations from your browser.</h1>
-        <p class="hero-copy">
-          A local Studio experience for building charts, tables, heatmaps and
-          dashboard components without writing code.
-        </p>
+      <section class="studio-layout">
+        <section class="hero hero-sidebar">
+          <p class="eyebrow">VizFlow Studio</p>
 
-        <div class="hero-actions">
-          <a class="button button-primary" href="#studio-preview">Open Studio</a>
-          <a class="button button-secondary" href="/api/health">Check server</a>
-        </div>
-      </section>
+          <h1>Generate visualizations from your browser.</h1>
 
-      <section id="studio-preview" class="panel">
-        <div>
-          <p class="eyebrow">Scaffold ready</p>
-          <h2>Studio package is running.</h2>
-          <p>
-            The next commits will add visual type selection, dynamic forms, file
-            upload, inline preview and HTML download.
+          <p class="hero-copy">
+            A local Studio experience for building charts, tables, heatmaps and
+            dashboard components without writing code.
           </p>
-        </div>
 
-        <div class="status-card">
-          <span class="status-dot"></span>
-          <div>
-            <strong>Local server active</strong>
-            <p>Default port: 4242</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#studio-workspace">Open Studio</a>
           </div>
-        </div>
+        </section>
+
+        <section
+          id="studio-workspace"
+          class="workspace workspace-main"
+          aria-labelledby="studio-step-title"
+        >
+          <div class="section-heading">
+            <p class="eyebrow">Step 1</p>
+            <h2 id="studio-step-title">Choose what you want to generate.</h2>
+            <p>
+              Select a visualization type. The next steps will reuse the same
+              parameters available in the current CLI wizard.
+            </p>
+          </div>
+
+          <div class="type-grid" aria-label="Visualization type selection">
+            <button
+              class="type-card"
+              type="button"
+              data-viz-type="chart"
+              aria-pressed="true"
+            >
+              <span class="type-icon" aria-hidden="true">📊</span>
+              <span class="type-content">
+                <strong>Chart</strong>
+                <small>Bar, line, pie, scatter, area, horizontal bar and doughnut.</small>
+              </span>
+            </button>
+
+            <button
+              class="type-card"
+              type="button"
+              data-viz-type="table"
+              aria-pressed="false"
+            >
+              <span class="type-icon" aria-hidden="true">📋</span>
+              <span class="type-content">
+                <strong>Table</strong>
+                <small>Searchable, sortable and paginated data tables.</small>
+              </span>
+            </button>
+
+            <button
+              class="type-card"
+              type="button"
+              data-viz-type="heatmap"
+              aria-pressed="false"
+            >
+              <span class="type-icon" aria-hidden="true">🌡️</span>
+              <span class="type-content">
+                <strong>Heatmap</strong>
+                <small>Matrix visualizations for intensity and activity grids.</small>
+              </span>
+            </button>
+
+            <button
+              class="type-card"
+              type="button"
+              data-viz-type="components"
+              aria-pressed="false"
+            >
+              <span class="type-icon" aria-hidden="true">🧩</span>
+              <span class="type-content">
+                <strong>Components</strong>
+                <small>Metric cards and progress bars for KPI dashboards.</small>
+              </span>
+            </button>
+          </div>
+
+          <aside class="selection-panel" aria-live="polite">
+            <div class="selection-copy">
+              <p class="eyebrow">Selected type</p>
+              <h3 data-selected-title>Chart</h3>
+              <p data-selected-description>
+                Build bar, line, pie, scatter, area, horizontal bar and doughnut charts.
+              </p>
+            </div>
+
+            <div class="next-step-card">
+              <span class="status-dot"></span>
+              <p data-selected-next-step>
+                Next: dynamic chart form with title, axes, dimensions, theme and data source.
+              </p>
+            </div>
+
+            <button
+              class="button button-primary button-full"
+              type="button"
+              data-continue-button
+            >
+              Continue with Chart
+            </button>
+          </aside>
+        </section>
       </section>
     </main>
   </body>
