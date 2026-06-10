@@ -49,6 +49,9 @@ VizFlow.js provides a programmatic Core API and a conversational CLI wizard to c
   - `emerald`
   - `midnight`
   - `sunset`
+  - `ocean`
+  - `rose`
+  - `forest`
 
 - Data helpers:
   - CSV parser
@@ -67,25 +70,13 @@ VizFlow.js provides a programmatic Core API and a conversational CLI wizard to c
 
 ```bash
 npm install @smolina-dev/vizflow-core
-```
-
-### CLI
-
-```bash
+CLI
 npm install -g @smolina-dev/vizflow-cli
-```
 
 Or run it directly:
 
-```bash
 npx @smolina-dev/vizflow-cli
-```
-
----
-
-## Quick Start
-
-```ts
+Quick Start
 import { barChart, toHtmlFile } from '@smolina-dev/vizflow-core'
 import { writeFileSync } from 'node:fs'
 
@@ -119,13 +110,7 @@ const html = toHtmlFile(output, {
 })
 
 writeFileSync('sales.html', html)
-```
-
----
-
-## Charts
-
-```ts
+Charts
 import {
   barChart,
   lineChart,
@@ -135,11 +120,7 @@ import {
   horizontalBarChart,
   doughnutChart,
 } from '@smolina-dev/vizflow-core'
-```
-
-### Area Chart
-
-```ts
+Area Chart
 const output = areaChart({
   type: 'area',
   title: 'Revenue Trend',
@@ -155,11 +136,7 @@ const output = areaChart({
     ],
   },
 })
-```
-
-### Horizontal Bar Chart
-
-```ts
+Horizontal Bar Chart
 const output = horizontalBarChart({
   type: 'horizontalBar',
   title: 'Top Products',
@@ -174,11 +151,7 @@ const output = horizontalBarChart({
     ],
   },
 })
-```
-
-### Doughnut Chart
-
-```ts
+Doughnut Chart
 const output = doughnutChart({
   type: 'doughnut',
   title: 'Sales by Channel',
@@ -193,23 +166,13 @@ const output = doughnutChart({
     ],
   },
 })
-```
-
----
-
-## Dashboard Components
-
-```ts
+Dashboard Components
 import {
   metricCard,
   progressBar,
   heatmap,
 } from '@smolina-dev/vizflow-core'
-```
-
-### Metric Card
-
-```ts
+Metric Card
 const output = metricCard({
   title: 'Total Sales',
   subtitle: 'Current month',
@@ -225,11 +188,7 @@ const output = metricCard({
     label: 'vs previous month',
   },
 })
-```
-
-### Progress Bar
-
-```ts
+Progress Bar
 const output = progressBar({
   title: 'Goal Completion',
   subtitle: 'Monthly target',
@@ -237,11 +196,7 @@ const output = progressBar({
   max: 100,
   variant: 'success',
 })
-```
-
-### Heatmap
-
-```ts
+Heatmap
 const output = heatmap({
   title: 'Weekly Activity',
   subtitle: 'Activity by product and day',
@@ -254,13 +209,7 @@ const output = heatmap({
   ],
   colorScale: 'green',
 })
-```
-
----
-
-## Enhanced Tables
-
-```ts
+Enhanced Tables
 import { table } from '@smolina-dev/vizflow-core'
 
 const output = table(
@@ -294,184 +243,141 @@ const output = table(
     density: 'comfortable',
   }
 )
-```
-
----
-
-## Value Formatting
+Value Formatting
 
 Supported value formats:
 
-| Type | Description |
-|---|---|
-| `number` | Localized number |
-| `currency` | Localized currency |
-| `percent` | Percentage |
-| `compact` | Compact notation such as `1.2K` or `3.4M` |
+Type	Description
+number	Localized number
+currency	Localized currency
+percent	Percentage
+compact	Compact notation such as 1.2K or 3.4M
 
 Example:
 
-```ts
 {
   type: 'currency',
   currency: 'GTQ',
   locale: 'es-GT',
   maximumFractionDigits: 0,
 }
-```
+Themes
 
----
+VizFlow includes 11 built-in themes ready to use in standalone HTML files and CLI-generated visualizations.
 
-## Output Helpers
+Theme	Palette	Description	Best for
+light	⚪ 🟣 🟢	Clean light interface	General reports and simple dashboards
+dark	⚫ 🟣 🟡	Dark dashboard interface	Internal dashboards and dark layouts
+hot	🔴 🟠 🟡	Warm red/orange palette	Impact charts and urgent indicators
+cold	🔵 🟦 🟢	Cool blue/cyan palette	Technical or analytical reports
+corporate	🔵 ⚪ ⚫	Professional blue/gray business theme	Executive dashboards
+emerald	🟢 ⚪ 🟩	Growth-focused green theme	Sales, growth and positive KPIs
+midnight	⚫ 🟣 🟦	Premium dark dashboard theme	Modern dashboards and presentations
+sunset	🟠 🌹 🟡	Warm presentation-ready theme	Visual reports and storytelling
+ocean	🌊 🔵 🟢	Deep marine analytics theme	Dark analytics dashboards
+rose	🌹 🔴 ⚪	Elegant rose/crimson theme	Polished presentations and executive views
+forest	🌲 🟢 🟤	Earthy dark green theme	Environmental, natural or sustainability dashboards
 
-### Standalone HTML
+Use a theme with toHtmlFile():
 
-```ts
+const html = toHtmlFile(output, {
+  title: 'My Dashboard',
+  theme: 'ocean',
+  includeChartJs: true,
+})
+
+The same theme names are available from the CLI wizard.
+
+Output Helpers
+Standalone HTML
 const html = toHtmlFile(output, {
   title: 'My Dashboard',
   theme: 'midnight',
   includeChartJs: true,
 })
-```
 
-Use `includeChartJs: true` for chart visualizations.
+Use includeChartJs: true for chart visualizations.
 
-Use `includeChartJs: false` for:
+Use includeChartJs: false for:
 
-- Tables
-- Metric Cards
-- Progress Bars
-- Heatmaps
-
-### Embed Snippet
-
-```ts
+Tables
+Metric Cards
+Progress Bars
+Heatmaps
+Embed Snippet
 import { toEmbedSnippet } from '@smolina-dev/vizflow-core'
 
 const snippet = toEmbedSnippet(output, {
   includeChartJs: true,
 })
-```
-
----
-
-## CLI Wizard
-
-```bash
+CLI Wizard
 npx @smolina-dev/vizflow-cli
-```
 
 Available generators:
 
-```txt
 /chart       — Generate charts
 /table       — Generate searchable tables
 /heatmap     — Generate heatmaps
 /components  — Generate metric cards and progress bars
-```
 
 The CLI supports:
 
-- Manual data entry
-- CSV files
-- JSON files
-- Premium themes
-- Value formatting
-- Table search
-- Heatmap color scales
-- Safe file overwrite confirmation
-
----
-
-## CSV Support
+Manual data entry
+CSV files
+JSON files
+Premium themes
+Value formatting
+Table search
+Heatmap color scales
+Safe file overwrite confirmation
+CSV Support
 
 The CSV parser supports:
 
-- Quoted values
-- Commas inside quoted fields
-- Escaped quotes
-- Multiline quoted fields
-- CRLF and LF line endings
-- Boolean, null and numeric inference
+Quoted values
+Commas inside quoted fields
+Escaped quotes
+Multiline quoted fields
+CRLF and LF line endings
+Boolean, null and numeric inference
 
 Example:
 
-```csv
 month,sales
 Jan,1200
 Feb,950
 Mar,1400
-```
-
----
-
-## JSON Support
-
-```json
+JSON Support
 [
   { "month": "Jan", "sales": 1200 },
   { "month": "Feb", "sales": 950 },
   { "month": "Mar", "sales": 1400 }
 ]
-```
-
----
-
-## Themes
-
-| Theme | Description |
-|---|---|
-| `light` | Clean light interface |
-| `dark` | Dark dashboard interface |
-| `hot` | Warm red/orange palette |
-| `cold` | Cool blue/cyan palette |
-| `corporate` | Professional blue/gray business theme |
-| `emerald` | Growth-focused green theme |
-| `midnight` | Premium dark dashboard theme |
-| `sunset` | Warm presentation-ready theme |
-
----
-
-## Development
+Development
 
 Install dependencies:
 
-```bash
 pnpm install
-```
 
 Run tests:
 
-```bash
 pnpm test
-```
 
 Build all packages:
 
-```bash
 pnpm build
-```
 
 Build core:
 
-```bash
 pnpm --filter @smolina-dev/vizflow-core build
-```
 
 Build CLI:
 
-```bash
 pnpm --filter @smolina-dev/vizflow-cli build
-```
+Changelog
 
----
+See CHANGELOG.md.
 
-## Changelog
-
-See `CHANGELOG.md`.
-
----
-
-## License
+License
 
 MIT
