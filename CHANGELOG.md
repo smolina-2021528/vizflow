@@ -6,6 +6,54 @@ This project follows semantic versioning.
 
 ---
 
+## 1.3.0 — Theme Expansion Update
+
+### Added
+
+- Added 3 new built-in Core themes:
+  - `ocean`
+  - `rose`
+  - `forest`
+
+- Added `ocean` theme:
+  - Deep marine analytics palette.
+  - Dark blue background.
+  - Cyan and teal chart accents.
+  - Designed for dark analytics dashboards.
+
+- Added `rose` theme:
+  - Elegant rose and crimson palette.
+  - Light presentation-ready background.
+  - Strong pink/red chart accents.
+  - Designed for polished presentations and executive views.
+
+- Added `forest` theme:
+  - Dark earthy green palette.
+  - Natural green and lime chart accents.
+  - Designed for environmental, natural, sustainability or organic dashboards.
+
+- Added standalone CSS theme files:
+  - `packages/core/src/themes/ocean.css`
+  - `packages/core/src/themes/rose.css`
+  - `packages/core/src/themes/forest.css`
+
+- Added the new themes to the Core theme system so they can be used with `toHtmlFile()`.
+
+- Added the new themes to the centralized CLI `themeChoices`, making them available in:
+  - Chart wizard
+  - Table wizard
+  - Heatmap wizard
+  - Components wizard
+
+### Updated
+
+- Updated the main README with a complete built-in theme gallery.
+- Updated Core README with the new theme names, gallery and CSS import examples.
+- Updated CLI README with the new theme options.
+- Updated theme tests to validate `ocean`, `rose` and `forest`.
+
+---
+
 ## 1.2.1 — CLI Internal Cleanup Patch
 
 ### Refactored
