@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VizFlow Studio</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="/styles.css" />
     <script src="/app.js" defer></script>
   </head>
 
@@ -35,7 +35,7 @@
             <p class="eyebrow">Step 1</p>
             <h2 id="studio-step-title">Choose what you want to generate.</h2>
             <p>
-              Select a visualization type. The next steps will reuse the same
+              Select a visualization type. The next steps reuse the same core
               parameters available in the current CLI wizard.
             </p>
           </div>
@@ -106,7 +106,7 @@
             <div class="next-step-card">
               <span class="status-dot"></span>
               <p data-selected-next-step>
-                Next: dynamic chart form with title, axes, dimensions, theme and data source.
+                Configure the chart parameters and prepare the output.
               </p>
             </div>
 
@@ -115,9 +115,15 @@
               type="button"
               data-continue-button
             >
-              Continue with Chart
+              Configure Chart
             </button>
           </aside>
+
+          <section
+            class="config-panel"
+            data-config-panel
+            aria-label="Visualization configuration"
+          ></section>
         </section>
       </section>
     </main>

@@ -115,7 +115,11 @@ h3 {
 .section-heading p,
 .selection-panel p,
 .next-step-card p,
-.type-content small {
+.type-content small,
+.config-heading p,
+.field-help,
+.form-status,
+.empty-config-card p {
   margin: 0;
   color: var(--studio-muted);
   font-size: 1.03rem;
@@ -287,6 +291,147 @@ h3 {
   min-width: 210px;
 }
 
+.config-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.config-card {
+  display: grid;
+  gap: 24px;
+  padding: 28px;
+  border: 1px solid var(--studio-border);
+  border-radius: 22px;
+  background: rgba(11, 37, 56, 0.78);
+}
+
+.config-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.config-heading > div {
+  display: grid;
+  gap: 10px;
+}
+
+.studio-form {
+  display: grid;
+  gap: 22px;
+}
+
+fieldset {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--studio-border);
+  border-radius: 18px;
+}
+
+legend {
+  padding: 0 8px;
+  color: var(--studio-text);
+  font-weight: 900;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.field span {
+  color: var(--studio-text);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--studio-border);
+  border-radius: 14px;
+  background: rgba(4, 17, 31, 0.82);
+  color: var(--studio-text);
+}
+
+input,
+select {
+  min-height: 46px;
+  padding: 0 14px;
+}
+
+textarea {
+  min-height: 150px;
+  padding: 14px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 3px solid rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.72);
+}
+
+.field-hidden {
+  display: none;
+}
+
+.field-help {
+  padding: 14px 16px;
+  border: 1px solid var(--studio-border);
+  border-radius: 16px;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.form-status {
+  font-weight: 700;
+}
+
+.config-summary-card {
+  background: rgba(4, 17, 31, 0.86);
+}
+
+.config-summary {
+  max-height: 420px;
+  overflow: auto;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--studio-border);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.24);
+  color: #dff6ff;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.empty-config-card {
+  min-height: 220px;
+  align-content: center;
+}
+
 @media (max-width: 1280px) {
   .studio-layout {
     grid-template-columns: 1fr;
@@ -318,7 +463,8 @@ h3 {
     padding: 24px;
   }
 
-  .type-grid {
+  .type-grid,
+  .form-grid {
     grid-template-columns: 1fr;
   }
 
