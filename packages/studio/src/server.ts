@@ -77,7 +77,7 @@ function sendText(
 function sendJson(
   response: ServerResponse,
   statusCode: number,
-  payload: Record<string, unknown>
+  payload: unknown
 ): void {
   sendText(
     response,
@@ -135,7 +135,9 @@ function readRequestBody(request: IncomingMessage): Promise<string> {
   })
 }
 
-async function readJsonBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+async function readJsonBody(
+  request: IncomingMessage
+): Promise<Record<string, unknown>> {
   const raw = await readRequestBody(request)
 
   if (raw.trim().length === 0) {
@@ -245,7 +247,10 @@ async function handleRequest(
   response: ServerResponse
 ): Promise<void> {
   const method = request.method ?? 'GET'
-  const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`)
+  const url = new URL(
+    request.url ?? '/',
+    `http://${request.headers.host ?? 'localhost'}`
+  )
 
   if (method === 'GET') {
     await handleGetRequest(publicDir, url, response)
