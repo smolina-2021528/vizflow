@@ -8,6 +8,7 @@ import { extname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { STUDIO_HOST } from './config.js'
+import { generateChartHtml } from './generate/chart.js'
 
 export interface StudioServerOptions {
   port: number
@@ -19,6 +20,8 @@ export interface StudioServerHandle {
   url: string
   close: () => Promise<void>
 }
+
+const MAX_JSON_BODY_BYTES = 1_000_000
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -76,14 +79,76 @@ function sendJson(
   statusCode: number,
   payload: Record<string, unknown>
 ): void {
-  sendText(response, statusCode, JSON.stringify(payload, null, 2), 'application/json; charset=utf-8')
+  sendText(
+    response,
+    statusCode,
+    JSON.stringify(payload, null, 2),
+    'application/json; charset=utf-8'
+  )
 }
 
 function isPathInside(basePath: string, targetPath: string): boolean {
   const normalizedBase = normalize(basePath)
   const normalizedTarget = normalize(targetPath)
 
-  return normalizedTarget === normalizedBase || normalizedTarget.startsWith(`${normalizedBase}/`)
+  return (
+    normalizedTarget === normalizedBase ||
+    normalizedTarget.startsWith(`${normalizedBase}/`)
+  )
+}
+
+function readRequestBody(request: IncomingMessage): Promise<string> {
+  return new Promise((resolvePromise, rejectPromise) => {
+    let body = ''
+    let totalBytes = 0
+    let rejected = false
+
+    request.on('data', chunk => {
+      if (rejected) {
+        return
+      }
+
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      totalBytes += buffer.length
+
+      if (totalBytes > MAX_JSON_BODY_BYTES) {
+        rejected = true
+        rejectPromise(new Error('Request body is too large.'))
+        request.destroy()
+        return
+      }
+
+      body += buffer.toString('utf-8')
+    })
+
+    request.on('end', () => {
+      if (!rejected) {
+        resolvePromise(body)
+      }
+    })
+
+    request.on('error', error => {
+      if (!rejected) {
+        rejectPromise(error)
+      }
+    })
+  })
+}
+
+async function readJsonBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+  const raw = await readRequestBody(request)
+
+  if (raw.trim().length === 0) {
+    return {}
+  }
+
+  const parsed = JSON.parse(raw) as unknown
+
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error('Request body must be a JSON object.')
+  }
+
+  return parsed as Record<string, unknown>
 }
 
 async function serveStaticFile(
@@ -113,22 +178,11 @@ async function serveStaticFile(
   createReadStream(filePath).pipe(response)
 }
 
-async function handleRequest(
+async function handleGetRequest(
   publicDir: string,
-  request: IncomingMessage,
+  url: URL,
   response: ServerResponse
 ): Promise<void> {
-  const method = request.method ?? 'GET'
-  const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`)
-
-  if (method !== 'GET') {
-    sendJson(response, 405, {
-      ok: false,
-      error: 'Method not allowed',
-    })
-    return
-  }
-
   if (url.pathname === '/api/health') {
     sendJson(response, 200, {
       ok: true,
@@ -154,6 +208,59 @@ async function handleRequest(
   }
 
   await serveStaticFile(publicDir, url.pathname, response)
+}
+
+async function handlePostRequest(
+  request: IncomingMessage,
+  url: URL,
+  response: ServerResponse
+): Promise<void> {
+  if (url.pathname === '/api/generate/chart') {
+    try {
+      const payload = await readJsonBody(request)
+      const result = generateChartHtml(payload)
+
+      sendJson(response, 200, result)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+
+      sendJson(response, 400, {
+        ok: false,
+        error: message,
+      })
+    }
+
+    return
+  }
+
+  sendJson(response, 404, {
+    ok: false,
+    error: 'Endpoint not found',
+  })
+}
+
+async function handleRequest(
+  publicDir: string,
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<void> {
+  const method = request.method ?? 'GET'
+  const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`)
+
+  if (method === 'GET') {
+    await handleGetRequest(publicDir, url, response)
+    return
+  }
+
+  if (method === 'POST') {
+    await handlePostRequest(request, url, response)
+    return
+  }
+
+  sendJson(response, 405, {
+    ok: false,
+    error: 'Method not allowed',
+  })
 }
 
 export async function startStudioServer({

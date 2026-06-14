@@ -3,7 +3,7 @@ const visualizationTypes = {
     title: 'Chart',
     description:
       'Build bar, line, pie, scatter, area, horizontal bar and doughnut charts.',
-    nextStep: 'Configure the chart parameters and prepare the output.',
+    nextStep: 'Configure the chart parameters and generate the HTML output.',
     continueLabel: 'Configure Chart',
   },
   table: {
@@ -113,8 +113,8 @@ function getChartFormTemplate() {
           <p class="eyebrow">Step 2</p>
           <h3>Configure your chart.</h3>
           <p>
-            Fill the same core parameters used by the CLI. Generation and preview
-            will be connected in the next commits.
+            Fill the same core parameters used by the CLI. Studio will send this
+            configuration to the local server and generate real VizFlow HTML.
           </p>
         </div>
       </div>
@@ -184,8 +184,8 @@ function getChartFormTemplate() {
               <span>Data source</span>
               <select name="dataSource" data-data-source-select>
                 <option value="manual" selected>Manual / inline JSON</option>
-                <option value="csv">CSV upload coming next</option>
-                <option value="json">JSON upload coming next</option>
+                <option value="csv" disabled>CSV upload coming next</option>
+                <option value="json" disabled>JSON upload coming next</option>
               </select>
             </label>
 
@@ -280,12 +280,12 @@ function getChartFormTemplate() {
         </fieldset>
 
         <div class="form-actions">
-          <button class="button button-primary" type="submit">
-            Prepare Chart Config
+          <button class="button button-primary" type="submit" data-generate-button>
+            Generate Chart HTML
           </button>
 
           <p class="form-status" data-form-status>
-            Ready to configure.
+            Ready to generate.
           </p>
         </div>
       </form>
@@ -301,7 +301,108 @@ function getChartFormTemplate() {
 
       <pre class="config-summary" data-chart-summary></pre>
     </div>
+
+    <div class="config-card config-summary-card" data-generated-output hidden>
+      <div class="config-heading">
+        <div>
+          <p class="eyebrow">Generated HTML</p>
+          <h3>Output ready.</h3>
+          <p data-generated-meta>
+            The generated HTML will appear here after submitting the form.
+          </p>
+        </div>
+      </div>
+
+      <pre class="config-summary" data-generated-html></pre>
+    </div>
   `
+}
+
+function parseInlineRows(rawValue) {
+  let parsed
+
+  try {
+    parsed = JSON.parse(rawValue)
+  } catch {
+    throw new Error('Inline rows must be valid JSON.')
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('Inline rows must be a JSON array.')
+  }
+
+  if (parsed.length === 0) {
+    throw new Error('Inline rows must contain at least one row.')
+  }
+
+  return parsed
+}
+
+function readOptionalNumber(value) {
+  const parsed = Number(value)
+
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
+function buildValueFormat(formData) {
+  const formatType = String(formData.get('formatType') ?? 'none')
+
+  if (formatType === 'none') {
+    return undefined
+  }
+
+  const format = {
+    type: formatType,
+    locale: String(formData.get('locale') ?? 'en-US'),
+    maximumFractionDigits: readOptionalNumber(
+      formData.get('maximumFractionDigits')
+    ),
+  }
+
+  if (formatType === 'currency') {
+    format.currency = String(formData.get('currency') ?? 'USD').toUpperCase()
+  }
+
+  return format
+}
+
+function buildChartGenerationPayload(form) {
+  const formData = new FormData(form)
+  const valueFormat = buildValueFormat(formData)
+  const rows = parseInlineRows(String(formData.get('rows') ?? '[]'))
+
+  return {
+    chartConfig: {
+      type: String(formData.get('chartType') ?? 'bar'),
+      title: String(formData.get('title') ?? ''),
+      subtitle: String(formData.get('subtitle') ?? ''),
+      xKey: String(formData.get('xKey') ?? 'label'),
+      yKey: String(formData.get('yKey') ?? 'value'),
+      width: readOptionalNumber(formData.get('width')),
+      height: readOptionalNumber(formData.get('height')),
+      appearance: {
+        card: String(formData.get('card')) === 'true',
+        shadow: String(formData.get('shadow')) === 'true',
+        rounded: String(formData.get('rounded') ?? 'lg'),
+      },
+      format: valueFormat
+        ? {
+            y: valueFormat,
+            tooltip: valueFormat,
+          }
+        : undefined,
+      data: {
+        kind: 'inline',
+        rows,
+      },
+    },
+    outputOptions: {
+      title: 'VizFlow Chart',
+      theme: String(formData.get('theme') ?? 'ocean'),
+      includeChartJs: true,
+      filename: String(formData.get('filename') ?? 'chart.html'),
+    },
+  }
 }
 
 function bindChartForm() {
@@ -311,6 +412,10 @@ function bindChartForm() {
   const dataSourceSelect = document.querySelector('[data-data-source-select]')
   const dataSourceNote = document.querySelector('[data-data-source-note]')
   const status = document.querySelector('[data-form-status]')
+  const generateButton = document.querySelector('[data-generate-button]')
+  const generatedOutput = document.querySelector('[data-generated-output]')
+  const generatedMeta = document.querySelector('[data-generated-meta]')
+  const generatedHtml = document.querySelector('[data-generated-html]')
 
   if (!form) {
     return
@@ -353,15 +458,65 @@ function bindChartForm() {
     syncSummary()
   })
 
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault()
 
-    if (status) {
-      status.textContent =
-        'Chart configuration prepared. The generation endpoint will be connected next.'
-    }
+    try {
+      if (status) {
+        status.textContent = 'Generating chart HTML...'
+      }
 
-    syncSummary()
+      if (generateButton) {
+        generateButton.disabled = true
+      }
+
+      const payload = buildChartGenerationPayload(form)
+
+      const response = await fetch('/api/generate/chart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error ?? 'Could not generate chart HTML.')
+      }
+
+      window.vizflowStudioLastGeneration = result
+
+      if (generatedOutput) {
+        generatedOutput.hidden = false
+      }
+
+      if (generatedMeta) {
+        generatedMeta.textContent = `Generated ${result.filename} successfully. Size: ${result.bytes} bytes.`
+      }
+
+      if (generatedHtml) {
+        generatedHtml.textContent = result.html
+      }
+
+      if (status) {
+        status.textContent =
+          'Chart HTML generated. Preview and download will be connected next.'
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+
+      if (status) {
+        status.textContent = `Error: ${message}`
+      }
+    } finally {
+      if (generateButton) {
+        generateButton.disabled = false
+      }
+
+      syncSummary()
+    }
   })
 
   updateFormatFields()
@@ -377,22 +532,15 @@ function renderChartSummary(form) {
   }
 
   const formData = new FormData(form)
-  const formatType = String(formData.get('formatType') ?? 'none')
+  const valueFormat = buildValueFormat(formData)
 
-  const valueFormat =
-    formatType === 'none'
-      ? undefined
-      : {
-          type: formatType,
-          locale: String(formData.get('locale') ?? 'en-US'),
-          currency:
-            formatType === 'currency'
-              ? String(formData.get('currency') ?? 'USD')
-              : undefined,
-          maximumFractionDigits: Number(
-            formData.get('maximumFractionDigits') ?? 1
-          ),
-        }
+  let rowsSummary = 'Invalid JSON'
+
+  try {
+    rowsSummary = `${parseInlineRows(String(formData.get('rows') ?? '[]')).length} rows`
+  } catch {
+    rowsSummary = 'Invalid JSON'
+  }
 
   const chartConfig = {
     type: String(formData.get('chartType') ?? 'bar'),
@@ -400,8 +548,8 @@ function renderChartSummary(form) {
     subtitle: String(formData.get('subtitle') ?? ''),
     xKey: String(formData.get('xKey') ?? 'label'),
     yKey: String(formData.get('yKey') ?? 'value'),
-    width: Number(formData.get('width') ?? 600),
-    height: Number(formData.get('height') ?? 400),
+    width: readOptionalNumber(formData.get('width')),
+    height: readOptionalNumber(formData.get('height')),
     appearance: {
       card: String(formData.get('card')) === 'true',
       shadow: String(formData.get('shadow')) === 'true',
@@ -415,7 +563,7 @@ function renderChartSummary(form) {
       : undefined,
     data: {
       kind: 'inline',
-      rows: 'Parsed from inline JSON in the generation step',
+      rows: rowsSummary,
     },
   }
 
