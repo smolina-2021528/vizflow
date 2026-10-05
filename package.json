@@ -1,6 +1,6 @@
 {
   "name": "vizflow-monorepo",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "private": true,
   "description": "VizFlow.js monorepo — charts, tables and CLI wizard",
   "license": "MIT",
@@ -9,13 +9,13 @@
   "scripts": {
     "dev": "pnpm --filter @smolina-dev/vizflow-core dev",
     "build": "pnpm --filter @smolina-dev/vizflow-core build && pnpm --filter @smolina-dev/vizflow-cli build",
-    "test": "pnpm --filter @smolina-dev/vizflow-core test && pnpm --filter @smolina-dev/vizflow-cli test",
+    "test": "pnpm --filter @smolina-dev/vizflow-core test && pnpm --filter @smolina-dev/vizflow-core build && pnpm --filter @smolina-dev/vizflow-cli test",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
   "type": "module",
   "engines": {
-    "node": ">=18.0.0",
+    "node": "^20.19.0 || >=22.13.0",
     "pnpm": ">=10.0.0"
   },
   "devDependencies": {

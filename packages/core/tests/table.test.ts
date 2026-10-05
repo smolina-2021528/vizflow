@@ -119,6 +119,28 @@ describe('table', () => {
     expect(output.html).toContain('125,000')
   })
 
+  it('preserves raw numeric values for sorting formatted cells', () => {
+    const output = table({
+      columns: [
+        {
+          key: 'sales',
+          label: 'Sales',
+          format: { type: 'compact', maximumFractionDigits: 1 },
+        },
+      ],
+      data: {
+        kind: 'inline',
+        rows: [{ sales: 1200 }, { sales: 950 }],
+      },
+    })
+
+    expect(output.html).toContain('data-sort-type="number"')
+    expect(output.html).toContain('data-sort-value="1200"')
+    expect(output.html).toContain('data-sort-value="950"')
+    expect(output.html).toContain("getAttribute('data-sort-value')")
+    expect(output.html).not.toContain("replace(/[^0-9.-]/g, '')")
+  })
+
   it('enables search by default', () => {
     const output = table(config)
 

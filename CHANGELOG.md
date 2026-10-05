@@ -6,6 +6,25 @@ This project follows semantic versioning.
 
 ---
 
+## 1.3.1 — Reliability Patch
+
+### Fixed
+
+- Fixed table sorting so formatted numeric values (including compact, currency and localized formats) sort by their original raw numeric value instead of rendered text.
+- Fixed the CLI Metric Card “Infer from value” option so trend direction is actually inferred instead of being forced to neutral.
+- Added validation that rejects negative values in pie and doughnut charts to avoid invalid share/percentage visualizations.
+- Added a safe light-theme fallback when `buildThemeStyle()` receives an invalid runtime theme value from JavaScript.
+- Fixed malformed Markdown code fences in project documentation.
+
+### Maintenance
+
+- Updated package versions to `1.3.1`.
+- Updated the monorepo Node.js development requirement to `^20.19.0 || >=22.13.0` to match the current Vite/ESLint toolchain.
+- Added regression tests for numeric table sorting, negative pie/doughnut values and invalid theme fallback.
+- Added an expanded usage guide under `docs/GUIA_DE_USO.md`.
+
+---
+
 ## 1.3.0 — Theme Expansion Update
 
 ### Added

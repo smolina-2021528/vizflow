@@ -99,15 +99,15 @@ async function runMetricCardWizard(): Promise<void> {
       default: '12.5',
     })
 
-    const trendDirection = await select<MetricTrendDirection>({
+    const trendDirection = await select<'infer' | MetricTrendDirection>({
       message: 'Trend direction?',
       choices: [
-        { name: 'Infer from value', value: 'neutral' },
+        { name: 'Infer from value', value: 'infer' },
         { name: 'Up', value: 'up' },
         { name: 'Down', value: 'down' },
         { name: 'Neutral', value: 'neutral' },
       ],
-      default: 'neutral',
+      default: 'infer',
     })
 
     const trendLabelRaw = await input({
@@ -117,7 +117,7 @@ async function runMetricCardWizard(): Promise<void> {
 
     trend = {
       value: parseFiniteNumberOrDefault(trendValueRaw, 0),
-      direction: trendDirection,
+      direction: trendDirection === 'infer' ? undefined : trendDirection,
       label: optionalText(trendLabelRaw),
       format: {
         type: 'number',

@@ -147,6 +147,14 @@ export function pieChart(
   const labels = extractLabels(rows, config.xKey)
   const values = extractValues(rows, config.yKey)
 
+  values.forEach((value, index) => {
+    if (value < 0) {
+      throw new Error(
+        `[VizFlow] Pie chart: value at row ${index} for key "${config.yKey}" must be non-negative`
+      )
+    }
+  })
+
   const html = buildHtml(id, labels, values, title, config, options)
   const css = buildWrapperCss(id, width, height, config.appearance)
 

@@ -53,4 +53,11 @@ describe('buildThemeStyle', () => {
     expect(css).toContain('--vf-background:#07130d')
     expect(css).toContain('--vf-chart-5:#a3e635')
   })
+  it('falls back to light theme for invalid runtime values', () => {
+    const css = buildThemeStyle('invalid-theme' as never)
+
+    expect(css).toContain('--vf-primary:#6366f1')
+    expect(css).toContain('--vf-background:#ffffff')
+  })
+
 })

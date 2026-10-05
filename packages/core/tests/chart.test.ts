@@ -330,6 +330,20 @@ describe('pieChart', () => {
     )
   })
 
+  it('rejects negative pie values', () => {
+    expect(() =>
+      pieChart({
+        ...baseConfig,
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: -1 }],
+        },
+      })
+    ).toThrow(
+      '[VizFlow] Pie chart: value at row 0 for key "value" must be non-negative'
+    )
+  })
+
   it('falls back to default cutoutPercent when cutoutPercent is invalid', () => {
     const output = pieChart(baseConfig, {
       donut: true,
@@ -576,6 +590,21 @@ describe('doughnutChart', () => {
     expect(output.html).toContain('canvas')
     expect(output.html).toContain("type: 'doughnut'")
     expect(output.html).toContain('cutout: "65%"')
+  })
+
+  it('rejects negative doughnut values', () => {
+    expect(() =>
+      doughnutChart({
+        ...baseConfig,
+        type: 'doughnut',
+        data: {
+          kind: 'inline',
+          rows: [{ label: 'A', value: -1 }],
+        },
+      })
+    ).toThrow(
+      '[VizFlow] Doughnut chart: value at row 0 for key "value" must be non-negative'
+    )
   })
 
   it('supports formatter options inside tooltips', () => {

@@ -211,5 +211,5 @@ const themeStyles: Record<BuiltInThemeName, string> = {
  * Returns CSS custom properties for one of the built-in VizFlow themes.
  */
 export function buildThemeStyle(theme: BuiltInThemeName = 'light'): string {
-  return themeStyles[theme]
+  return themeStyles[theme] ?? themeStyles.light
 }

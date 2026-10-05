@@ -157,9 +157,15 @@ function buildTableRowsHtml(config: TableConfig): string {
       const cells = columns
         .map(col => {
           const align = resolveColumnAlign(col.align)
-          const formattedValue = formatTableValue(row[col.key], col.format)
+          const rawValue = row[col.key]
+          const formattedValue = formatTableValue(rawValue, col.format)
+          const isNumericValue =
+            typeof rawValue === 'number' && Number.isFinite(rawValue)
+          const sortType = isNumericValue ? 'number' : 'text'
+          const sortValue =
+            rawValue === null || rawValue === undefined ? '' : String(rawValue)
 
-          return `<td data-align="${align}">${escapeHtml(formattedValue)}</td>`
+          return `<td data-align="${align}" data-sort-type="${sortType}" data-sort-value="${escapeHtml(sortValue)}">${escapeHtml(formattedValue)}</td>`
         })
         .join('\n        ')
 
@@ -327,12 +333,16 @@ function buildTableHtml(
       const colIndex = Array.from(th.parentElement.children).indexOf(th)
 
       allRows.sort(function (a, b) {
-        const aVal = a.children[colIndex].textContent.trim()
-        const bVal = b.children[colIndex].textContent.trim()
-        const aNum = Number(aVal.replace(/[^0-9.-]/g, ''))
-        const bNum = Number(bVal.replace(/[^0-9.-]/g, ''))
-        const isNum = Number.isFinite(aNum) && Number.isFinite(bNum) && aVal !== '' && bVal !== ''
-        const cmp = isNum ? aNum - bNum : aVal.localeCompare(bVal)
+        const aCell = a.children[colIndex]
+        const bCell = b.children[colIndex]
+        const aVal = aCell.getAttribute('data-sort-value') || ''
+        const bVal = bCell.getAttribute('data-sort-value') || ''
+        const isNum =
+          aCell.getAttribute('data-sort-type') === 'number' &&
+          bCell.getAttribute('data-sort-type') === 'number'
+        const cmp = isNum
+          ? Number(aVal) - Number(bVal)
+          : aVal.localeCompare(bVal, undefined, { numeric: true, sensitivity: 'base' })
         return ascending ? cmp : -cmp
       })
 
