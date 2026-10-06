@@ -6,6 +6,34 @@ This project follows semantic versioning.
 
 ---
 
+## 1.4.0 — Multi-Series Charts
+
+### Added
+
+- Added multi-series support to bar, line and area charts through the new `series` configuration.
+- Added public `ChartSeries` and `SeriesChartConfig` types while preserving the existing single-series `yKey` API.
+- Added automatic legends and theme-aware color rotation when two or more series are rendered.
+- Added optional per-series tooltip formatting through `series[].format`.
+- Added CLI support for additional comma-separated Y-axis keys in bar, line and area chart wizards.
+- Added manual CLI data entry for multiple numeric series in the same row.
+
+### Compatibility
+
+- Existing `barChart`, `lineChart` and `areaChart` calls using `yKey` remain valid without changes.
+- When both `series` and `yKey` are provided, `series` takes precedence.
+- Pie, doughnut, scatter and horizontal bar charts keep their existing single-series behavior.
+
+### Validation
+
+- Added validation for empty series keys, duplicate series keys and non-finite values across every configured series.
+- Added regression tests covering bar, line and area multi-series output, legacy compatibility and formatter behavior.
+
+### Maintenance
+
+- Updated monorepo, Core and CLI package versions to `1.4.0`.
+
+---
+
 ## 1.3.1 — Reliability Patch
 
 ### Fixed

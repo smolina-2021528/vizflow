@@ -2,7 +2,9 @@ import type {
   ChartAppearance,
   ChartConfig,
   ChartFormatOptions,
+  ChartSeries,
   DataRow,
+  SeriesChartConfig,
   ValueFormatOptions,
   ValueFormatType,
 } from '../types/index.js'
@@ -35,6 +37,13 @@ export interface ResolvedChartFormatOptions {
   x: ResolvedValueFormatOptions
   y: ResolvedValueFormatOptions
   tooltip: ResolvedValueFormatOptions
+}
+
+export interface ResolvedChartSeries {
+  key: string
+  label: string
+  values: number[]
+  format?: ResolvedValueFormatOptions
 }
 
 /** Resolves the DataSource from any config that contains a DataSource into a DataRow array */
@@ -217,6 +226,61 @@ export function extractValues(rows: DataRow[], yKey: string): number[] {
 
     return value
   })
+}
+
+/**
+ * Resolves one or more data series for bar, line and area charts.
+ * Multi-series definitions take precedence over the legacy yKey.
+ */
+export function resolveChartSeries(
+  rows: DataRow[],
+  config: SeriesChartConfig,
+  fallbackLabel?: string
+): ResolvedChartSeries[] {
+  const configuredSeries = config.series?.filter(Boolean) ?? []
+
+  if (configuredSeries.length > 0) {
+    const seenKeys = new Set<string>()
+
+    return configuredSeries.map((series: ChartSeries, index) => {
+      const key = series.key?.trim()
+
+      if (!key) {
+        throw new Error(`[VizFlow] Chart series at index ${index} must define a non-empty key`)
+      }
+
+      if (seenKeys.has(key)) {
+        throw new Error(`[VizFlow] Chart series key "${key}" is duplicated`)
+      }
+
+      seenKeys.add(key)
+
+      const label = series.label?.trim() || key
+
+      return {
+        key,
+        label,
+        values: extractValues(rows, key),
+        format: series.format
+          ? resolveValueFormatOptions(series.format)
+          : undefined,
+      }
+    })
+  }
+
+  const yKey = config.yKey?.trim()
+
+  if (!yKey) {
+    throw new Error('[VizFlow] Bar, line and area charts require yKey or at least one series')
+  }
+
+  return [
+    {
+      key: yKey,
+      label: config.title ?? fallbackLabel ?? yKey,
+      values: extractValues(rows, yKey),
+    },
+  ]
 }
 
 /** Extracts an array of {x, y} points for scatter charts */

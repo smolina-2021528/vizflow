@@ -96,7 +96,7 @@ describe('barChart', () => {
     expect(output.html).toContain('"currency":"GTQ"')
     expect(output.html).toContain('"locale":"es-GT"')
     expect(output.html).toContain('vfFormatValue(value, vfYFormat)')
-    expect(output.html).toContain('vfFormatValue(value, vfTooltipFormat)')
+    expect(output.html).toContain('context.dataset.vfValueFormat || vfTooltipFormat')
   })
 
   it('supports compact number formatting through the default value formatter', () => {
@@ -241,7 +241,7 @@ describe('lineChart', () => {
 
     expect(output.html).toContain('"type":"percent"')
     expect(output.html).toContain('vfFormatValue(value, vfYFormat)')
-    expect(output.html).toContain('vfFormatValue(value, vfTooltipFormat)')
+    expect(output.html).toContain('context.dataset.vfValueFormat || vfTooltipFormat')
   })
 
   it('rejects non-finite line values', () => {
@@ -500,7 +500,7 @@ describe('areaChart', () => {
     )
 
     expect(output.html).toContain('tension: 1')
-    expect(output.html).toContain('gradient.addColorStop(0, vfWithAlpha(primaryColor, 1))')
+    expect(output.html).toContain('gradient.addColorStop(0, vfWithAlpha(color, 1))')
     expect(output.html).toContain('pointRadius: 4')
   })
 

@@ -1,8 +1,8 @@
-import type { ChartConfig, VizFlowOutput } from '../types/index.js'
+import type { SeriesChartConfig, VizFlowOutput } from '../types/index.js'
 import {
   resolveData,
   extractLabels,
-  extractValues,
+  resolveChartSeries,
   generateId,
   buildWrapperCss,
   buildChartColorScript,
@@ -19,11 +19,18 @@ import { toJsonScriptValue } from '../utils/escape.js'
 function buildHtml(
   id: string,
   labels: string[],
-  values: number[],
   title: string,
-  config: ChartConfig
+  config: SeriesChartConfig
 ): string {
+  const rows = resolveData(config)
+  const series = resolveChartSeries(rows, config, title)
   const format = resolveChartFormatOptions(config.format)
+  const serializedSeries = series.map(item => ({
+    label: item.label,
+    data: item.values,
+    format: item.format ?? null,
+  }))
+  const showLegend = series.length > 1
 
   return `
 ${buildChartShellHtml(id, title, config.subtitle)}
@@ -35,22 +42,27 @@ ${buildChartShellHtml(id, title, config.subtitle)}
 
     const vfYFormat = ${toJsonScriptValue(format.y)}
     const vfTooltipFormat = ${toJsonScriptValue(format.tooltip)}
+    const vfSeries = ${toJsonScriptValue(serializedSeries)}
     const ctx = document.getElementById('vf-canvas-${id}')
 
     new Chart(ctx, {
       type: 'bar',
       data: {
         labels: ${toJsonScriptValue(labels)},
-        datasets: [{
-          label: ${toJsonScriptValue(title)},
-          data: ${toJsonScriptValue(values)},
-          backgroundColor: vfWithAlpha(vfChartColors[0], 0.88),
-          borderColor: vfChartColors[0],
-          borderWidth: 1,
-          borderRadius: 8,
-          borderSkipped: false,
-          hoverBackgroundColor: vfChartColors[0],
-        }]
+        datasets: vfSeries.map(function (series, index) {
+          const color = vfChartColors[index % vfChartColors.length]
+          return {
+            label: series.label,
+            data: series.data,
+            vfValueFormat: series.format,
+            backgroundColor: vfWithAlpha(color, 0.88),
+            borderColor: color,
+            borderWidth: 1,
+            borderRadius: 8,
+            borderSkipped: false,
+            hoverBackgroundColor: color,
+          }
+        })
       },
       options: {
         responsive: true,
@@ -60,7 +72,10 @@ ${buildChartShellHtml(id, title, config.subtitle)}
           mode: 'index'
         },
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: ${showLegend},
+            labels: { color: vfTextColor, usePointStyle: true }
+          },
           tooltip: {
             enabled: true,
             backgroundColor: vfSurfaceColor,
@@ -69,12 +84,13 @@ ${buildChartShellHtml(id, title, config.subtitle)}
             borderColor: vfBorderColor,
             borderWidth: 1,
             padding: 12,
-            displayColors: false,
+            displayColors: ${showLegend},
             callbacks: {
               label: function (context) {
                 const label = context.dataset.label || ''
                 const value = context.parsed.y
-                return label + ': ' + vfFormatValue(value, vfTooltipFormat)
+                const valueFormat = context.dataset.vfValueFormat || vfTooltipFormat
+                return label + ': ' + vfFormatValue(value, valueFormat)
               }
             }
           }
@@ -107,13 +123,13 @@ ${buildChartShellHtml(id, title, config.subtitle)}
 // ─── Main generator ───────────────────────────────────────────────
 
 /**
- * Generates a bar chart from a ChartConfig.
- * Returns a VizFlowOutput with html, css, and a render() method.
+ * Generates a bar chart from a SeriesChartConfig.
+ * Supports the legacy yKey API and the new multi-series API.
  *
  * @param config - Chart configuration object
  * @returns VizFlowOutput ready to insert into the DOM
  */
-export function barChart(config: ChartConfig): VizFlowOutput {
+export function barChart(config: SeriesChartConfig): VizFlowOutput {
   const id = generateId()
   const width = sanitizeFiniteNumber(config.width, 600, { min: 1 })
   const height = sanitizeFiniteNumber(config.height, 400, { min: 1 })
@@ -121,9 +137,11 @@ export function barChart(config: ChartConfig): VizFlowOutput {
 
   const rows = resolveData(config)
   const labels = extractLabels(rows, config.xKey)
-  const values = extractValues(rows, config.yKey)
 
-  const html = buildHtml(id, labels, values, title, config)
+  // Resolve once here so invalid series fail before HTML is generated.
+  resolveChartSeries(rows, config, title)
+
+  const html = buildHtml(id, labels, title, config)
   const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {

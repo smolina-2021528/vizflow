@@ -1,8 +1,8 @@
-import type { ChartConfig, VizFlowOutput } from '../types/index.js'
+import type { SeriesChartConfig, VizFlowOutput } from '../types/index.js'
 import {
   resolveData,
   extractLabels,
-  extractValues,
+  resolveChartSeries,
   generateId,
   buildWrapperCss,
   buildChartColorScript,
@@ -31,9 +31,8 @@ export interface LineChartOptions {
 function buildHtml(
   id: string,
   labels: string[],
-  values: number[],
   title: string,
-  config: ChartConfig,
+  config: SeriesChartConfig,
   options: LineChartOptions
 ): string {
   const fill = sanitizeBoolean(options.fill, false)
@@ -42,7 +41,15 @@ function buildHtml(
     min: 0,
     max: 1,
   })
+  const rows = resolveData(config)
+  const series = resolveChartSeries(rows, config, title)
   const format = resolveChartFormatOptions(config.format)
+  const serializedSeries = series.map(item => ({
+    label: item.label,
+    data: item.values,
+    format: item.format ?? null,
+  }))
+  const showLegend = series.length > 1
 
   return `
 ${buildChartShellHtml(id, title, config.subtitle)}
@@ -54,27 +61,31 @@ ${buildChartShellHtml(id, title, config.subtitle)}
 
     const vfYFormat = ${toJsonScriptValue(format.y)}
     const vfTooltipFormat = ${toJsonScriptValue(format.tooltip)}
-    const primaryColor = vfChartColors[0]
+    const vfSeries = ${toJsonScriptValue(serializedSeries)}
     const ctx = document.getElementById('vf-canvas-${id}')
 
     new Chart(ctx, {
       type: 'line',
       data: {
         labels: ${toJsonScriptValue(labels)},
-        datasets: [{
-          label: ${toJsonScriptValue(title)},
-          data: ${toJsonScriptValue(values)},
-          borderColor: primaryColor,
-          backgroundColor: vfWithAlpha(primaryColor, 0.14),
-          fill: ${fill},
-          tension: ${tension},
-          borderWidth: 3,
-          pointRadius: ${showPoints ? 4 : 0},
-          pointHoverRadius: ${showPoints ? 6 : 0},
-          pointBackgroundColor: primaryColor,
-          pointBorderColor: vfSurfaceColor,
-          pointBorderWidth: 2,
-        }]
+        datasets: vfSeries.map(function (series, index) {
+          const color = vfChartColors[index % vfChartColors.length]
+          return {
+            label: series.label,
+            data: series.data,
+            vfValueFormat: series.format,
+            borderColor: color,
+            backgroundColor: vfWithAlpha(color, 0.14),
+            fill: ${fill},
+            tension: ${tension},
+            borderWidth: 3,
+            pointRadius: ${showPoints ? 4 : 0},
+            pointHoverRadius: ${showPoints ? 6 : 0},
+            pointBackgroundColor: color,
+            pointBorderColor: vfSurfaceColor,
+            pointBorderWidth: 2,
+          }
+        })
       },
       options: {
         responsive: true,
@@ -84,7 +95,10 @@ ${buildChartShellHtml(id, title, config.subtitle)}
           mode: 'index'
         },
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: ${showLegend},
+            labels: { color: vfTextColor, usePointStyle: true }
+          },
           tooltip: {
             enabled: true,
             backgroundColor: vfSurfaceColor,
@@ -93,12 +107,13 @@ ${buildChartShellHtml(id, title, config.subtitle)}
             borderColor: vfBorderColor,
             borderWidth: 1,
             padding: 12,
-            displayColors: false,
+            displayColors: ${showLegend},
             callbacks: {
               label: function (context) {
                 const label = context.dataset.label || ''
                 const value = context.parsed.y
-                return label + ': ' + vfFormatValue(value, vfTooltipFormat)
+                const valueFormat = context.dataset.vfValueFormat || vfTooltipFormat
+                return label + ': ' + vfFormatValue(value, valueFormat)
               }
             }
           }
@@ -131,15 +146,15 @@ ${buildChartShellHtml(id, title, config.subtitle)}
 // ─── Main generator ───────────────────────────────────────────────
 
 /**
- * Generates a line chart from a ChartConfig.
- * Accepts optional LineChartOptions for fill, points and tension.
+ * Generates a line chart from a SeriesChartConfig.
+ * Supports the legacy yKey API and the new multi-series API.
  *
  * @param config - Chart configuration object
  * @param options - Optional line chart specific settings
  * @returns VizFlowOutput ready to insert into the DOM
  */
 export function lineChart(
-  config: ChartConfig,
+  config: SeriesChartConfig,
   options: LineChartOptions = {}
 ): VizFlowOutput {
   const id = generateId()
@@ -149,9 +164,10 @@ export function lineChart(
 
   const rows = resolveData(config)
   const labels = extractLabels(rows, config.xKey)
-  const values = extractValues(rows, config.yKey)
 
-  const html = buildHtml(id, labels, values, title, config, options)
+  resolveChartSeries(rows, config, title)
+
+  const html = buildHtml(id, labels, title, config, options)
   const css = buildWrapperCss(id, width, height, config.appearance)
 
   return {

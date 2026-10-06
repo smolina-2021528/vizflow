@@ -16,6 +16,7 @@ import type {
   ChartAppearance,
   ChartConfig,
   DataRow,
+  SeriesChartConfig,
   VizFlowOutput,
 } from '@smolina-dev/vizflow-core'
 import type {
@@ -99,7 +100,7 @@ async function collectAppearance(): Promise<ChartAppearance> {
 
 async function collectManualRows(
   xKey: string,
-  yKey: string,
+  yKeys: string[],
   numericX: boolean = false
 ): Promise<DataRow[]> {
   const rows: DataRow[] = []
@@ -109,13 +110,23 @@ async function collectManualRows(
     const rawX = await input({ message: `  ${xKey}:` })
     if (rawX.trim().toLowerCase() === 'done') break
 
-    const rawY = await input({ message: `  ${yKey}:` })
-    const valueY = parseFiniteNumber(rawY)
+    const values: Record<string, number> = {}
+    let invalidValue = false
 
-    if (valueY === null) {
-      console.log('  ⚠ Y must be a finite number — skipping row.')
-      continue
+    for (const yKey of yKeys) {
+      const rawY = await input({ message: `  ${yKey}:` })
+      const valueY = parseFiniteNumber(rawY)
+
+      if (valueY === null) {
+        console.log(`  ⚠ ${yKey} must be a finite number — skipping row.`)
+        invalidValue = true
+        break
+      }
+
+      values[yKey] = valueY
     }
+
+    if (invalidValue) continue
 
     if (numericX) {
       const valueX = parseFiniteNumber(rawX)
@@ -125,9 +136,9 @@ async function collectManualRows(
         continue
       }
 
-      rows.push({ [xKey]: valueX, [yKey]: valueY })
+      rows.push({ [xKey]: valueX, ...values })
     } else {
-      rows.push({ [xKey]: rawX, [yKey]: valueY })
+      rows.push({ [xKey]: rawX, ...values })
     }
   }
 
@@ -257,32 +268,43 @@ async function collectScatterOptions(
 
 async function generate(
   type: CliChartType,
-  config: ChartConfig
+  config: ChartConfig | SeriesChartConfig
 ): Promise<VizFlowOutput> {
   switch (type) {
     case 'bar':
-      return barChart(config)
+      return barChart(config as SeriesChartConfig)
 
     case 'line':
-      return lineChart(config, await collectLineOptions())
-
-    case 'pie':
-      return pieChart(config, await collectPieOptions())
-
-    case 'scatter':
-      return scatterChart(
-        config,
-        await collectScatterOptions(config.xKey, config.yKey)
+      return lineChart(
+        config as SeriesChartConfig,
+        await collectLineOptions()
       )
 
+    case 'pie':
+      return pieChart(config as ChartConfig, await collectPieOptions())
+
+    case 'scatter': {
+      const singleConfig = config as ChartConfig
+      return scatterChart(
+        singleConfig,
+        await collectScatterOptions(singleConfig.xKey, singleConfig.yKey)
+      )
+    }
+
     case 'area':
-      return areaChart(config, await collectAreaOptions())
+      return areaChart(
+        config as SeriesChartConfig,
+        await collectAreaOptions()
+      )
 
     case 'horizontalBar':
-      return horizontalBarChart(config, await collectHorizontalBarOptions())
+      return horizontalBarChart(
+        config as ChartConfig,
+        await collectHorizontalBarOptions()
+      )
 
     case 'doughnut':
-      return doughnutChart(config, await collectDoughnutOptions())
+      return doughnutChart(config as ChartConfig, await collectDoughnutOptions())
   }
 }
 
@@ -321,6 +343,24 @@ export async function run(): Promise<void> {
     default: 'value',
   })
 
+  const supportsMultipleSeries =
+    type === 'bar' || type === 'line' || type === 'area'
+
+  const additionalYKeys = supportsMultipleSeries
+    ? await input({
+        message: 'Additional Y axis keys? (comma separated, blank for single series)',
+        default: '',
+      })
+    : ''
+
+  const yKeys = [
+    yKey,
+    ...additionalYKeys
+      .split(',')
+      .map(key => key.trim())
+      .filter(key => key.length > 0 && key !== yKey),
+  ].filter((key, index, keys) => keys.indexOf(key) === index)
+
   const sourceType = await select<CliDataSource>({
     message: 'Data source?',
     choices: [
@@ -345,7 +385,7 @@ export async function run(): Promise<void> {
       promptMessage: 'Path to JSON file:',
     })
   } else {
-    rows = await collectManualRows(xKey, yKey, type === 'scatter')
+    rows = await collectManualRows(xKey, yKeys, type === 'scatter')
   }
 
   if (!rows || rows.length === 0) {
@@ -386,12 +426,16 @@ export async function run(): Promise<void> {
     default: 'chart.html',
   })
 
-  const config: ChartConfig = {
+  const config: ChartConfig | SeriesChartConfig = {
     type,
     title,
     subtitle,
     xKey,
     yKey,
+    series:
+      supportsMultipleSeries && yKeys.length > 1
+        ? yKeys.map(key => ({ key, label: key }))
+        : undefined,
     width: parseOptionalFiniteNumber(widthRaw),
     height: parseOptionalFiniteNumber(heightRaw),
     appearance,

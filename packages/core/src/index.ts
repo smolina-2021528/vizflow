@@ -14,6 +14,8 @@ export type {
   ChartRounded,
   ChartAppearance,
   ChartConfig,
+  ChartSeries,
+  SeriesChartConfig,
   ComponentAppearance,
   MetricTrendDirection,
   MetricTrend,

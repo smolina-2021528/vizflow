@@ -140,6 +140,28 @@ export interface ChartConfig {
   format?: ChartFormatOptions
 }
 
+/** A single data series used by bar, line and area charts. */
+export interface ChartSeries {
+  /** Key from DataRow used as this series' Y value. */
+  key: string
+  /** Visible label used in legends and tooltips. Defaults to key. */
+  label?: string
+  /** Optional formatter used by this series inside tooltips. */
+  format?: ValueFormatOptions
+}
+
+/**
+ * Configuration accepted by bar, line and area charts.
+ * Existing single-series configs using yKey remain fully supported.
+ * When series is provided and non-empty, it takes precedence over yKey.
+ */
+export interface SeriesChartConfig extends Omit<ChartConfig, 'yKey'> {
+  /** Single-series Y key retained for backwards compatibility. */
+  yKey?: string
+  /** Multiple Y series rendered in the same chart. */
+  series?: ChartSeries[]
+}
+
 // ─── Dashboard component types ────────────────────────────────────
 
 export interface ComponentAppearance {
